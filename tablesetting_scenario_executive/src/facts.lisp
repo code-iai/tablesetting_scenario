@@ -1,0 +1,194 @@
+;;; Copyright (c) 2015, Jan Winkler <winkler@cs.uni-bremen.de>
+;;; All rights reserved.
+;;; 
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions are met:
+;;; 
+;;;     * Redistributions of source code must retain the above copyright
+;;;       notice, this list of conditions and the following disclaimer.
+;;;     * Redistributions in binary form must reproduce the above copyright
+;;;       notice, this list of conditions and the following disclaimer in the
+;;;       documentation and/or other materials provided with the distribution.
+;;;     * Neither the name of Willow Garage, Inc. nor the names of its
+;;;       contributors may be used to endorse or promote products derived from
+;;;       this software without specific prior written permission.
+;;; 
+;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+;;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;;; POSSIBILITY OF SUCH DAMAGE.
+
+(in-package :tablesetting-scenario-executive)
+
+(defun make-scenario-area-restriction-cost-function ()
+  (let ((min-x -1.1)
+        (max-x 0.50)
+        (min-y 0.0)
+        (max-y 1.8))
+    (lambda (x y)
+      (if (and (>= x min-x)
+               (<= x max-x)
+               (>= y min-y)
+               (<= y max-y))
+          1.0d0
+          0.0d0))))
+
+(defun make-rack-facing-orientation-generator (object-acted-on)
+  (declare (ignore object-acted-on))
+  (let ((position (tf:make-identity-vector)))
+    (location-costmap:make-orientation-generator
+     (alexandria:rcurry (lambda (x y position)
+                          (declare (ignore x y position))
+                          ;; This always faces forward for now and
+                          ;; impicitly only takes one rack into
+                          ;; account. `object-acted-on', `x', and `y'
+                          ;; don't have any effect right now.
+                          0)
+                        position))))
+
+(defmethod costmap-generator-name->score
+    ((name (common-lisp:eql 'scenario-area-restriction-distribution)))
+  100)
+
+(defmethod costmap-generator-name->score
+    ((name (common-lisp:eql 'scenario-rackposition-restriction-distribution)))
+  101)
+
+(defun object-color (colors color)
+  (let ((color-pair (find color colors :test (lambda (x y) (eql x (car y))))))
+    (if color-pair
+        (cadr color-pair)
+        0.0d0)))
+
+(defun make-handles (distance-from-center
+                     &key
+                       (segments 1)
+                       (ax 0.0) (ay 0.0) (az 0.0)
+                       (offset-angle 0.0)
+                       grasp-type
+                       (center-offset
+                        (tf:make-identity-vector)))
+  (loop for i from 0 below segments
+        as current-angle = (+ (* 2 pi (float (/ i segments)))
+                              offset-angle)
+        as handle-pose = (tf:make-pose
+                          (tf:make-3d-vector
+                           (+ (* distance-from-center (cos current-angle))
+                              (tf:x center-offset))
+                           (+ (* distance-from-center (sin current-angle))
+                              (tf:y center-offset))
+                           (+ 0.0
+                              (tf:z center-offset)))
+                          (tf:euler->quaternion
+                           :ax ax :ay ay :az (+ az current-angle)))
+        as handle-object = (make-designator
+                            'cram-designators:object
+                            (append
+                             `((desig-props:type desig-props:handle)
+                               (desig-props:at
+                                ,(a location `((desig-props:pose
+                                                ,handle-pose)))))
+                             (when grasp-type
+                               `((desig-props:grasp-type ,grasp-type)))))
+        collect handle-object))
+
+(def-fact-group scenario-costmap-area-restriction (desig-costmap)
+  
+  (<- (desig-costmap ?desig ?cm)
+    (or (desig-prop ?desig (desig-props:to desig-props:see))
+        (desig-prop ?desig (desig-props:to desig-props:reach))
+        (desig-prop ?desig (desig-props:on Cupboard)))
+    (costmap ?cm)
+    (costmap-add-function scenario-area-restriction-distribution
+                          (make-scenario-area-restriction-cost-function)
+                          ?cm)
+    (costmap-add-orientation-generator
+     (make-rack-facing-orientation-generator ?desig)
+     ?cm))
+
+  (<- (desig-costmap ?desig ?cm)
+    (crs:fail)
+    (desig-prop ?desig (desig-props:to desig-props:reach))
+    (desig-prop ?desig (desig-props:obj ?obj))
+    (current-designator ?obj ?current-obj)
+    (desig-prop ?current-obj (desig-props:at ?at))
+    (desig-prop ?at (desig-props:pose ?pose))
+    (costmap ?cm)
+    (costmap-add-function scenario-rackposition-restriction-distribution
+                          (make-scenario-rackposition-restriction-distribution ?pose)
+                          ?cm)))
+
+(def-fact-group inference-facts (infer-object-property object-handle)
+  
+  (<- (make-handles ?segments ?offset-angle ?handles)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (make-handles 0.04 ?segments ?offset-angle 'desig-props::push
+                  ?pi-half 0 0 0 0 0 ?handles))
+  
+  (<- (make-handles ?distance-from-center ?segments ?offset-angle ?grasp-type
+                    ?hand-ax ?hand-ay ?hand-az ?co-x ?co-y ?co-z ?handles)
+    (crs:lisp-fun tf:make-3d-vector ?co-x ?co-y ?co-z ?co)
+    (crs:lisp-fun make-handles ?distance-from-center
+                  :segments ?segments
+                  :offset-angle ?offset-angle
+                  :grasp-type ?grasp-type
+                  :ax ?hand-ax
+                  :ay ?hand-ay
+                  :az ?hand-az
+                  :center-offset ?co
+                  ?handles))
+  
+  (<- (object-color ?object ?color ?value)
+    (desig-prop ?object (desig-props:color ?colors))
+    (crs:lisp-fun object-color ?colors ?color ?value))
+  
+  ;;(<- (infer-object-property ?object desig-props:dimensions ?value)
+  ;;  (desig-prop ?object (desig-props:name ?name))
+  ;;  (lisp-fun get-item-dimensions ?name ?value)
+  ;;  (not (equal ?value nil)))
+  
+  (<- (infer-object-property ?object desig-props:type desig-props::pancakemix)
+    (object-color ?object desig-props:yellow ?yellow)
+    (> ?yellow 0.1))
+  
+  (<- (infer-object-property ?object desig-props:handle ?handle)
+    (crs:once
+     (or (desig-prop ?object (desig-props:type ?type))
+         (infer-object-property ?object desig-props:type ?type)))
+    (crs:lisp-fun symbol-package ?type ?pkg)
+    (object-handle ?type ?handles-list)
+    (member ?handle ?handles-list))
+  
+  (<- (object-handle desig-props:pancakemix ?handles-list)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (make-handles 2 ?pi-half ?handles-list))
+  )
+  ;;(<- (infer-object-property ?object desig-props:shape ?value)
+  ;;  (desig-prop ?object (desig-props:name ?name))
+  ;;  (lisp-fun get-item-primitive-shape-symbol ?name ?value)))
+
+(def-fact-group occassions (holds)
+
+  (<- (object-picked-from-rack ?rack ?object)
+    (crs:fail))
+
+  (<- (objects-detected-in-rack ?rack ?object-template)
+    (crs:fail))
+
+  (<- (rack-scene-perceived)
+    (crs:fail))
+  
+  (<- (object-handover ?object ?target-hand)
+    (not (pr2-manip-pm::object-in-hand ?object ?target-hand)))
+  
+  (<- (object-placed-on-rack ?object ?level ?x ?y)
+    (crs:fail)))

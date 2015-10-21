@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <name>tablesetting_scenario_executive</name>
+  <version>0.0.1</version>
+  <description>
+    
+    Tablesetting scenario related executive code
+    
+  </description>
+
+  <maintainer email="winkler@cs.uni-bremen.de">Jan Winkler</maintainer>
+  <author email="winkler@cs.uni-bremen.de">Jan Winkler</author>
+  
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+</package>
