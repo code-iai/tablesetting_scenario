@@ -35,7 +35,7 @@
 ;; The hints system allows customization of the scenario before
 ;; running it, without actually touching any plan code or changing the
 ;; knowledge base. This is the second-level, quasi static task
-;; parameter knowledge. All hint keys are precedet with a colon (`:')
+;; parameter knowledge. All hint keys are preceeded with a colon (`:')
 ;; and are therefore Lisp keyword symbols.
 ;; 
 ;; Available hints (and their expected values) are:
@@ -66,6 +66,10 @@
 ;;;
 ;;; Shortcuts
 ;;;
+
+(defun run ()
+  (beliefstate:enable-logging t)
+  (run-tablesetting-new))
 
 (defun start-scenario-external ()
   (roslisp:ros-info (shopping) "Connecting to ROS")
@@ -121,29 +125,81 @@
        (with-process-modules
          (tablesetting :hints hints))))))
 
+(def-top-level-cram-function run-tablesetting-new ()
+  (with-process-modules
+    (move-arms-away)
+    (prepare-settings)
+    (tablesetting)))
+
 (def-cram-function tablesetting (&key hints)
-  "Performs a rack-tidying up scenario by controlling a PR2 robot that rearranges objects, based on a given target arrangement."
-  (let* ((surfaces `("kitchen_island" "kitchen_sink_block"))
-         (objects `(,(make-designator
-                      'object
-                      `(;(desig-props:type desig-props:pancakemix)
-                        (desig-props:at
-                         ,(make-designator
-                           'location
-                           `((desig-props:on Cupboard)
-                             (desig-props:name ,(first surfaces))))))))))
-    (let* ((object (first objects)))
-      (pick-object object)
-      (with-designators
-          ((kitchen-island (location `((desig-props:on Cupboard)
-                                       (desig-props:name ,(first surfaces))))))
-        (place-object object kitchen-island)))))
-    ;;        (perceived (try-forever
-    ;;                     (let ((p (perceive-a object)))
-    ;;                       (unless p
-    ;;                         (cpl:fail 'cram-plan-failures:object-not-found))
-    ;;                       p))))
-    ;;   (pick-object perceived))))
+  (move-torso)
+  (move-arms-away)
+  (with-designators
+      ((kitchen-island
+        (location
+         `((desig-props:on Cupboard)
+           (desig-props:name "kitchen_island"))))
+       (kitchen-sink-block
+        (location
+         `((desig-props:on Cupboard)
+           (desig-props:name "kitchen_sink_block")))))
+    (let* ((pancakemix (make-designator
+                        'object
+                        `((desig-props:at ,(copy-designator kitchen-sink-block))
+                          (desig-props:type desig-props::pancakemix))))
+           (bowl (make-designator
+                  'object
+                  `((desig-props:at ,(copy-designator kitchen-sink-block))
+                    (desig-props:type desig-props::bowl))))
+           (milk (make-designator
+                  'object
+                  `((desig-props:at ,(copy-designator kitchen-sink-block))
+                    (desig-props:type desig-props::milk)))))
+      (labels ((bring-to (object destination)
+                 (try-forever
+                   (pick-object object))
+                 (try-forever
+                   (place-object object destination))))
+        (bring-to milk (copy-designator kitchen-island))))))
+
+(defun find-target-location (object)
+  ;; TODO: Find the target location for `object'.
+  )
+
+(def-top-level-cram-function unset-table ()
+  (move-torso)
+  (move-arms-away)
+  (with-designators ((location-on-table
+                      (location
+                       `((desig-props:on Cupboard)
+                         (desig-props:name "kitchen_island"))))
+                     (generic-object
+                      (object
+                       `(desig-props:at ,location-on-table))))
+    (labels ((bring-to-where-it-belongs (object)
+               (roslisp:ros-info
+                (unset-table)
+                "Bring object ~a where it belongs" object)
+               (bring-to object (find-target-location object))))
+      (let ((objects-on-table (perceive-all generic-object)))
+        (loop for object in objects-on-table do
+          (bring-to-where-it-belongs object))))))
+
+
+      ;; (loop for i from 1 below 2 do ;; 0 below 3
+      ;;   (with-designators
+      ;;       ((kitchen-island
+      ;;         (location
+      ;;          `((desig-props:on Cupboard)
+      ;;            (desig-props:name "kitchen_island"))))
+      ;;        (kitchen-sink-block
+      ;;         (location
+      ;;          `((desig-props:on Cupboard)
+      ;;            (desig-props:name "kitchen_sink_block")))))
+      ;;     (bring-to (current-desig pancakemix)
+      ;;               (if (evenp i)
+      ;;                   kitchen-sink-block
+      ;;                   kitchen-island)))))))
 
   ;; (let ((rack (first (get-racks))))
   ;;   (move-torso)
@@ -193,17 +249,6 @@
                 (go-in-front-of-rack rack)
                 (achieve `(switched-holding-hand ,detected-object))
                 )))))))
-                ;; (unless (desig:desig-equal object detected-object)
-                ;;   (equate object detected-object))
-                ;; (try-forever
-                ;;   (multiple-value-bind (rack-level x y)
-                ;;       (get-free-position-on-rack rack :hints hints)
-                ;;     (let ((elevation (get-rack-level-elevation
-                ;;                       (get-rack-on-level rack rack-level))))
-                ;;       (move-torso (/ elevation 5.0))
-                ;;       (achieve `(object-placed-on-rack
-                ;;                  ,object ,(get-rack-on-level rack rack-level)
-                ;;                  ,x ,y)))))))))))))
 
 (def-cram-function solve-arrangement-problem (&key hints)
   (let* ((problem (assert-planning-problem))
