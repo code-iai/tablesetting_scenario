@@ -28,16 +28,19 @@
 (in-package :tablesetting-scenario-executive)
 
 (defun make-scenario-area-restriction-cost-function ()
-  (let ((min-x -1.1)
-        (max-x 0.50)
-        (min-y 0.0)
+  (let ((min-x -1.0)
+        (max-x 1.55)
+        (min-y 0.3)
         (max-y 1.8))
     (lambda (x y)
       (if (and (>= x min-x)
                (<= x max-x)
                (>= y min-y)
                (<= y max-y))
-          1.0d0
+          (if (and (>= x 0.0)
+                   (>= y 0.7))
+              0.0d0
+              1.0d0)
           0.0d0))))
 
 (defun make-rack-facing-orientation-generator (object-acted-on)
@@ -127,14 +130,14 @@
 
 (def-fact-group inference-facts (infer-object-property object-handle)
   
-  (<- (make-handles ?segments ?offset-angle ?handles)
+  (<- (make-handle ?segments ?offset-angle ?handle)
     (symbol-value pi ?pi)
     (crs:lisp-fun / ?pi 2 ?pi-half)
-    (make-handles 0.04 ?segments ?offset-angle 'desig-props::push
-                  ?pi-half 0 0 0 0 0 ?handles))
+    (make-handle 0.04 ?segments ?offset-angle 'desig-props::push
+                  ?pi-half 0 0 0 0 0 ?handle))
   
-  (<- (make-handles ?distance-from-center ?segments ?offset-angle ?grasp-type
-                    ?hand-ax ?hand-ay ?hand-az ?co-x ?co-y ?co-z ?handles)
+  (<- (make-handle ?distance-from-center ?segments ?offset-angle ?grasp-type
+                   ?hand-ax ?hand-ay ?hand-az ?co-x ?co-y ?co-z ?handle)
     (crs:lisp-fun tf:make-3d-vector ?co-x ?co-y ?co-z ?co)
     (crs:lisp-fun make-handles ?distance-from-center
                   :segments ?segments
@@ -144,37 +147,93 @@
                   :ay ?hand-ay
                   :az ?hand-az
                   :center-offset ?co
-                  ?handles))
+                  ?handles)
+    (member ?handle ?handles))
   
   (<- (object-color ?object ?color ?value)
     (desig-prop ?object (desig-props:color ?colors))
     (crs:lisp-fun object-color ?colors ?color ?value))
   
-  ;;(<- (infer-object-property ?object desig-props:dimensions ?value)
-  ;;  (desig-prop ?object (desig-props:name ?name))
-  ;;  (lisp-fun get-item-dimensions ?name ?value)
-  ;;  (not (equal ?value nil)))
-  
   (<- (infer-object-property ?object desig-props:type desig-props::pancakemix)
     (object-color ?object desig-props:yellow ?yellow)
-    (> ?yellow 0.1))
+    (> ?yellow 0.3))
+  
+  (<- (infer-object-property ?object desig-props:type desig-props::bowl)
+    (object-color ?object desig-props:white ?white)
+    (desig-prop ?object (desig-props::shape desig-props::round))
+    (desig-prop ?object (desig-props::shape desig-props::flat))
+    (> ?white 0.8))
+  
+  (<- (infer-object-property ?object desig-props:type desig-props::milk)
+    (object-color ?object desig-props:white ?white)
+    (> ?white 0.8))
+  
+  (<- (infer-object-property ?object desig-props:shape desig-props::box)
+    (desig-prop ?object (desig-props::type desig-props::milk)))
+  
+  (<- (infer-object-property ?object desig-props:dimensions ?dim)
+    (desig-prop ?object (desig-props::type desig-props::milk))
+    (crs:lisp-fun vector 0.05 0.08 0.15 ?dim))
   
   (<- (infer-object-property ?object desig-props:handle ?handle)
     (crs:once
      (or (desig-prop ?object (desig-props:type ?type))
          (infer-object-property ?object desig-props:type ?type)))
-    (crs:lisp-fun symbol-package ?type ?pkg)
-    (object-handle ?type ?handles-list)
-    (member ?handle ?handles-list))
+    (object-handle ?type ?handle))
   
-  (<- (object-handle desig-props:pancakemix ?handles-list)
+  (<- (infer-object-property ?object desig-props::carry-handles ?handles)
+    (crs:once
+     (or (desig-prop ?object (desig-props:type ?type))
+         (infer-object-property ?object desig-props:type ?type)))
+    (object-carry-handles ?type ?handles))
+  
+  (<- (show-handle ?symbol ?handle)
+    (desig-prop ?handle (at ?at))
+    (desig-prop ?at (pose ?pose))
+    (format "~a: ~a~%" ?symbol ?pose))
+  
+  ;; Bowl handles begin
+  (<- (object-handle desig-props::bowl ?handle)
     (symbol-value pi ?pi)
     (crs:lisp-fun / ?pi 2 ?pi-half)
-    (make-handles 2 ?pi-half ?handles-list))
-  )
-  ;;(<- (infer-object-property ?object desig-props:shape ?value)
-  ;;  (desig-prop ?object (desig-props:name ?name))
-  ;;  (lisp-fun get-item-primitive-shape-symbol ?name ?value)))
+    (crs:lisp-fun / ?pi 4 ?pi-quarter)
+    (make-handle -0.06 1 ?pi-half push 0.0 ?pi-quarter 0 0.0 0.0 -0.01 ?handle))
+  
+  (<- (object-handle desig-props::bowl ?handle)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (crs:lisp-fun * 3 ?pi-half ?three-pi-half)
+    (crs:lisp-fun / ?pi 4 ?pi-quarter)
+    (make-handle -0.06 1 ?three-pi-half push 0.0 ?pi-quarter 0 0.0 0.0 -0.01 ?handle))
+  ;; Bowl handles end
+  
+  (<- (object-handle desig-props:pancakemix ?handle)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (make-handle 1 ?pi-half ?handle))
+  
+  (<- (object-handle desig-props:pancakemix ?handle)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (crs:lisp-fun * ?pi-half 3 ?three-pi-half)
+    (make-handle 1 ?three-pi-half ?handle))
+  
+  (<- (object-handle desig-props::milk ?handle)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (make-handle 0.04 1 ?pi-half desig-props::push ?pi-half 0 0 0 0 0 ?handle))
+    ;(make-handle 1 ?pi-half ?handle))
+  
+  (<- (object-handle desig-props::milk ?handle)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (crs:lisp-fun * ?pi-half 3 ?three-pi-half)
+    (make-handle 0.08 1 ?three-pi-half desig-props::push ?pi-half 0 0 0 0 0 ?handle))
+    ;(make-handle 1 ?three-pi-half ?handle))
+  
+  (<- (object-carry-handles desig-props::pancakemix 1))
+  (<- (object-carry-handles desig-props::milk 1))
+  (<- (object-carry-handles desig-props::bowl 1)))
 
 (def-fact-group occassions (holds)
 
