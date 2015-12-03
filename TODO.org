@@ -1,0 +1,7 @@
+Rename all objects from shopping scenario to tablesetting scenario
+ * Change paths
+ * Ask Ferko for object models
+ * Textures
+
+Maps
+ * Rebuild maps for floor plan
