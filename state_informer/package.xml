@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package>
+  <name>state_informer</name>
+  <version>0.0.0</version>
+  <description>
+    
+    Package for processing the current state of tablesetting experiments and making them visually appealing and informatively displayed.
+    
+  </description>
+  
+  <maintainer email="winkler@cs.uni-bremen.de">Jan Winkler</maintainer>
+  <author email="winkler@cs.uni-bremen.de">Jan Winkler</author>
+  
+  <license>BSD</license>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <build_depend>designator_integration_cpp</build_depend>
+  <build_depend>designator_integration_msgs</build_depend>
+  <build_depend>image_transport</build_depend>
+  
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>visualization_msgs</run_depend>
+  <run_depend>designator_integration_cpp</run_depend>
+  <run_depend>designator_integration_msgs</run_depend>
+  <run_depend>image_transport</run_depend>
+  
+</package>
