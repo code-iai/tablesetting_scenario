@@ -5,3 +5,20 @@ Rename all objects from shopping scenario to tablesetting scenario
 
 Maps
  * Rebuild maps for floor plan
+
+Objects
+ * Decide on objects used
+ * Define objects in OWL
+ * Find out additional object properties for perception
+
+Plans
+ * Find a cool way to define perception plans
+ * Specify allowed areas for costmaps:
+    * Floor map
+    * Table
+    * Fridge
+    * Drawer
+    * Counter
+ * Copy and refine reasoning rules from cram_longterm_pickandplace
+    * Reasoning for meal guests
+    * Reasoning for table seat areas
