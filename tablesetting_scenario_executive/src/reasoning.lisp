@@ -82,11 +82,45 @@
   (not (not (json-prolog:prolog
              `("is_stackable" ,(add-prolog-namespace item))))))
 
-(defun get-racks ()
-  "Returns all racks known in the current semantic environment."
-  (with-prolog-vars-bound (?rack)
-      `("rack" ?rack)
-    (strip-prolog-string ?rack)))
+(defun get-tables ()
+  (with-prolog-vars-bound (?table)
+      `("table" ?table)
+    (strip-prolog-string ?table)))
+
+(defun get-table-seats (table)
+  (with-prolog-vars-bound (?seat)
+      `("seat" ,(add-prolog-namespace table) ?seat)
+    (strip-prolog-string ?seat)))
+
+(defun get-seat-areas (seat)
+  (with-prolog-vars-bound (?area)
+      `("seat_area" ,(add-prolog-namespace seat) ?area)
+    (strip-prolog-string ?area)))
+
+(defun get-area-locations (area)
+  (with-prolog-vars-bound (?location)
+      `("area_location" ,(add-prolog-namespace area) ?location)
+    (strip-prolog-string ?location)))
+
+(defun get-location-hints (location)
+  (with-prolog-vars-bound (?hint)
+      `("location_hint" ,(add-prolog-namespace location) ?hint)
+    (let ((string-hint (string-upcase (write-to-string ?hint))))
+      (intern (subseq string-hint 2 (- (length string-hint) 2))
+              :keyword))))
+
+(defun get-seat-position-index (seat)
+  (with-first-prolog-vars-bound (?index)
+      `("seat_position_index" ,(add-prolog-namespace seat) ?index)
+    (let ((string (string-upcase (write-to-string ?index))))
+      (parse-integer (subseq string 2 (- (length string) 2))))))
+
+(defun get-seat-position-side (seat)
+  (with-first-prolog-vars-bound (?side)
+      `("seat_position_side" ,(add-prolog-namespace seat) ?side)
+    (let ((string (string-upcase (write-to-string ?side))))
+      (intern (subseq string 2 (- (length string) 2))
+              :keyword))))
 
 (defun get-rack-pose (rack)
   "Return the pose of the given rack, in `map' coordinates."

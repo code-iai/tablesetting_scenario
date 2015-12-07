@@ -36,9 +36,9 @@
 :- use_module(library('tablesetting_scenario_reasoning')).
 
 :- register_ros_package(iai_semantic_maps).
-:- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/tablesetting_area.owl').
-:- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/tablesetting_rack.owl').
-:- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/objects.owl').
+/**:- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/tablesetting_area.owl').
+:- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/tablesetting_rack.owl').*/
+:- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/table.owl').
 :- owl_parser:owl_parse('package://iai_semantic_maps/owl/iai_maps_addons.owl').
 
 :- rdf_db:rdf_register_ns(knowrob, 'http://ias.cs.tum.edu/kb/knowrob.owl#', [keep(true)]).

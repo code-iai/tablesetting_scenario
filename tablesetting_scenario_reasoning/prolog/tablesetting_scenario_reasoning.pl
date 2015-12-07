@@ -35,7 +35,10 @@
       table/1,
       seat/2,
       seat_area/2,
-      seat_area_location/2
+      area_location/2,
+      location_hint/2,
+      seat_position_index/2,
+      seat_position_side/2
     ]).
 
 
@@ -50,7 +53,10 @@
     table(r),
     seat(r, r),
     seat_area(r, r),
-    seat_area_location(r, r).
+    area_location(r, r),
+    location_hint(r, r),
+    seat_position_index(r, r),
+    seat_position_side(r, r).
 
 
 :- rdf_db:rdf_register_ns(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#', [keep(true)]).
@@ -62,7 +68,7 @@
 %% table(?Table) is nondet.
 table(Table) :-
     rdf_has(Table, rdf:type, A),
-    rdf_reachable(Table, rdfs:subClassOf, knowrob:'MealTable').
+    rdf_reachable(A, rdfs:subClassOf, knowrob:'MealTable').
 
 
 %% seat(?Table, ?Seat) is nondet.
@@ -74,13 +80,31 @@ seat(Table, Seat) :-
 
 %% seat_area(?Seat, ?Area) is nondet.
 seat_area(Seat, Area) :-
-    seat(Table, Seat),
+    seat(_, Seat),
     rdf_has(Seat, knowrob:'area', Area),
     rdf_has(Area, rdf:type, knowrob:'SeatArea').
 
 
-%% seat_area_location(?Area, ?Location) is nondet.
-seat_area_location(Area, Location) :-
-    seat_area(Seat, Area),
+%% area_location(?Area, ?Location) is nondet.
+area_location(Area, Location) :-
+    seat_area(_, Area),
     rdf_has(Area, knowrob:'location', Location),
-    rdf_has(Location, rdf:type, knowrob:'SeatAreaLocation').
+    rdf_has(Location, rdf:type, knowrob:'AreaLocation').
+
+
+%% location_hint(?Location, ?Hint) is nondet.
+location_hint(Location, Hint) :-
+    area_location(_, Location),
+    owl_has(Location, knowrob:'locationHint', literal(type(_, Hint))).
+
+
+%% seat_position_index(?Seat, ?Index)
+seat_position_index(Seat, Index) :-
+    seat_area(Seat, _),
+    rdf_has(Seat, knowrob:'index', literal(type(_, Index))).
+
+
+%% seat_position_side(?Seat, ?Side)
+seat_position_side(Seat, Side) :-
+    seat_area(Seat, _),
+    rdf_has(Seat, knowrob:'side', literal(type(_, Side))).
