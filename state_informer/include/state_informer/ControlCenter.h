@@ -25,6 +25,7 @@ namespace state_informer {
     image_transport::ImageTransport m_itTransport;
     std::shared_ptr<image_transport::Subscriber> m_isCompressed;
     std::shared_ptr<image_transport::Subscriber> m_isRaw;
+    ros::Publisher m_pubImageOut;
     
     ros::ServiceServer m_srvControl;
     

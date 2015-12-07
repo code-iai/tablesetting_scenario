@@ -6,10 +6,12 @@ namespace state_informer {
     m_srvControl = m_nhHandle.advertiseService<ControlCenter>("control", &ControlCenter::controlCallback, this);
     
     image_transport::TransportHints thHintsCompressed("compressed");
-    m_isCompressed = std::make_shared<image_transport::Subscriber>(m_itTransport.subscribe("compressed_image_in", 1, boost::bind(&ControlCenter::imageCallback, this, _1), ros::VoidPtr(), thHintsCompressed));
+    m_isCompressed = std::make_shared<image_transport::Subscriber>(m_itTransport.subscribe("image_in", 1, boost::bind(&ControlCenter::imageCallback, this, _1), ros::VoidPtr(), thHintsCompressed));
 
     image_transport::TransportHints thHintsRaw("raw");
-    m_isRaw = std::make_shared<image_transport::Subscriber>(m_itTransport.subscribe("raw_image_in", 1, boost::bind(&ControlCenter::imageCallback, this, _1), ros::VoidPtr(), thHintsRaw));
+    m_isRaw = std::make_shared<image_transport::Subscriber>(m_itTransport.subscribe("image_in", 1, boost::bind(&ControlCenter::imageCallback, this, _1), ros::VoidPtr(), thHintsRaw));
+    
+    m_pubImageOut = m_nhHandle.advertise<sensor_msgs::Image>("image_out", 10);
   }
   
   ControlCenter::~ControlCenter() {
@@ -25,6 +27,6 @@ namespace state_informer {
   }
   
   void ControlCenter::imageCallback(const sensor_msgs::Image::ConstPtr imgImage) {
-    std::cout << "Image" << std::endl;
+    m_pubImageOut.publish(imgImage);
   }
 }
