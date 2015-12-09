@@ -114,7 +114,19 @@
         (b ,(third colors))
         (a ,(fourth colors))))))))
 
-(defun display-table-scene ()
+(defun display-mesh (id pose path)
+  (desig-int:call-designator-service
+   "/state_informer/control"
+   (make-designator
+    'action
+    `((command "add")
+      (what "mesh")
+      (id ,id)
+      (where ,pose)
+      (details
+       ((path ,path)))))))
+
+(defun display-table-scene (&key highlight)
   (let* ((table-width 1.5)
          (table-depth 2.0)
          (table-height 0.8)
@@ -168,23 +180,49 @@
                    (tf:make-3d-vector x y z)
                    rotation)))))
       (display-table table-pose table-width table-depth)
-      (display-seat "seat-south-0" (seat-pose :south 0 1)
-                    seat-width seat-depth)
-      (display-seat "seat-north-0" (seat-pose :north 0 1)
-                    seat-width seat-depth)
-      (display-seat "seat-west-0" (seat-pose :west 0 2)
-                    seat-width seat-depth)
-      (display-seat "seat-west-1" (seat-pose :west 1 2)
-                    seat-width seat-depth)
-      (display-seat "seat-east-0" (seat-pose :east 0 2)
-                    seat-width seat-depth :highlight "back")
-      (display-seat "seat-east-1" (seat-pose :east 1 2)
-                    seat-width seat-depth :highlight t))))
+      (let ((table-definition (table-definition)))
+        (dolist (def table-definition)
+          (destructuring-bind (side max-seats) def
+            (loop for seat from 0 below max-seats
+                  as id = (table-seat-id def seat)
+                  as highlight-current = (loop for h in highlight
+                                               when (string=
+                                                     (first h) id)
+                                                 collect (second h))
+                  do (display-seat
+                      id (seat-pose side seat max-seats)
+                      seat-width seat-depth
+                      :highlight highlight-current))))))))
+
+(defun table-seat-id (def index)
+  (destructuring-bind (side max-seats) def
+    (declare (ignore max-seats))
+    (concatenate
+     'string
+     "seat-"
+     (subseq (string-downcase (write-to-string side)) 1)
+     "-"
+     (write-to-string index))))
+
+(defun table-definition ()
+  `((:north 1)
+    (:south 1)
+    (:west 2)
+    (:east 2)))
+
+(defun indexed-table-seat (index)
+  (let* ((definitions (table-definition))
+         (expansion
+           (loop for definition in definitions
+                 append
+                 (loop for i from 0 below (second definition)
+                       collect (table-seat-id definition i)))))
+    (nth index expansion)))
 
 (defun display-table (pose width depth)
   (display-box
    "table"
-   pose `(,width 0.8 ,depth) '(1.0 1.0 1.0 0.3)))
+   pose `(,width 0.8 ,depth) '(1.0 1.0 1.0 0.5)))
 
 (defun display-seat (id pose width depth &key highlight)
   (let ((back-fraction 0.25)
@@ -214,7 +252,7 @@
                      0.0)
                     (tf:euler->quaternion)))
                   `(,(first dimensions) 0.005 ,(second dimensions))
-                  (cond ((string= highlight id)
+                  (cond ((find id highlight :test #'string=)
                          (append color `(1.0)))
                         (t (let ((dim-factor 0.4))
                              `(,(* dim-factor (first color))
