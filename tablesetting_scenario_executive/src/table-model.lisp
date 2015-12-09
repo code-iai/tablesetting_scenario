@@ -1,4 +1,4 @@
-;;; Copyright (c) 2014, Jan Winkler <winkler@cs.uni-bremen.de>
+;;; Copyright (c) 2015, Jan Winkler <winkler@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,10 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :tablesetting-scenario-executive)
+
+(ql:quickload "vecto")
+(ql:quickload "flexi-streams")
+(ql:quickload "png")
 
 (deftype table-side () '(member :east :west :north :south))
 
@@ -60,8 +64,6 @@
      ,(make-seat :east 1))))
 
 (defun draw-table (table)
-  (ql:quickload "vecto")
-  (ql:quickload "flexi-streams")
   (vecto:with-canvas (:width 100 :height 100)
     (vecto:set-rgb-fill 1.0 0.65 0.3)
     (vecto:rounded-rectangle 0 0 100 100 10 10)
@@ -84,3 +86,185 @@
         (flexi-streams:with-input-from-sequence
             (input (draw-table nil))
           (png:encode (png:decode input) output)))))))
+
+(defun remove-marker (id)
+  (desig-int:call-designator-service
+   "/state_informer/control"
+   (make-designator
+    'action
+    `((command "remove")
+      (id ,id)))))
+
+(defun display-box (id pose dimensions colors)
+  (desig-int:call-designator-service
+   "/state_informer/control"
+   (make-designator
+    'action
+    `((command "add")
+      (what "box")
+      (id ,id)
+      (where ,pose)
+      (dimensions
+       ((width ,(first dimensions))
+        (height ,(second dimensions))
+        (depth ,(third dimensions))))
+      (colors
+       ((r ,(first colors))
+        (g ,(second colors))
+        (b ,(third colors))
+        (a ,(fourth colors))))))))
+
+(defun display-table-scene ()
+  (let* ((table-width 1.5)
+         (table-depth 2.0)
+         (table-height 0.8)
+         (table-pose (tf:make-pose
+                      (tf:make-3d-vector 0 0 (/ table-height 2))
+                      (tf:euler->quaternion)))
+         (seat-width 0.6)
+         (seat-depth 0.4))
+    (labels ((table-relative-pose (relative-pose)
+               (cl-transforms:transform-pose
+                (tf:pose->transform table-pose)
+                relative-pose))
+             (seat-pose (side index max)
+               (let ((rotation (tf:euler->quaternion
+                                :az (ecase side
+                                      (:south 0.0)
+                                      (:north pi)
+                                      (:west (/ pi -2))
+                                      (:east (/ pi 2)))))
+                     (x (ecase side
+                          ;; Kind of hackish, but it works.
+                          (:south 0);;(- (* (/ index max)
+                                    ;;    table-width)
+                                    ;; (/ table-width (* 2 max))))
+                          (:north 0);;(- (* (/ index max)
+                                    ;;    table-width)
+                                    ;; (/ table-width (* max 2))))
+                          (:west (- (/ seat-depth 2)
+                                     (/ table-width 2)
+                                     -0.02))
+                          (:east (- (/ table-width 2)
+                                     (/ seat-depth 2)
+                                     0.02))))
+                     (y (ecase side
+                          (:south (- (/ seat-depth 2)
+                                     (/ table-depth 2)
+                                     -0.02))
+                          (:north (- (/ table-depth 2)
+                                     (/ seat-depth 2)
+                                     0.02))
+                          (:west (- (* (/ index max)
+                                       table-depth)
+                                    (/ table-depth (* max 2))))
+                          (:east (- (* (/ index max)
+                                       table-depth)
+                                    (/ table-depth (* max 2))))))
+                     (z (+ 0.005
+                           (/ table-height 2))))
+                 (table-relative-pose
+                  (tf:make-pose
+                   (tf:make-3d-vector x y z)
+                   rotation)))))
+      (display-table table-pose table-width table-depth)
+      (display-seat "seat-south-0" (seat-pose :south 0 1)
+                    seat-width seat-depth)
+      (display-seat "seat-north-0" (seat-pose :north 0 1)
+                    seat-width seat-depth)
+      (display-seat "seat-west-0" (seat-pose :west 0 2)
+                    seat-width seat-depth)
+      (display-seat "seat-west-1" (seat-pose :west 1 2)
+                    seat-width seat-depth)
+      (display-seat "seat-east-0" (seat-pose :east 0 2)
+                    seat-width seat-depth :highlight "back")
+      (display-seat "seat-east-1" (seat-pose :east 1 2)
+                    seat-width seat-depth :highlight t))))
+
+(defun display-table (pose width depth)
+  (display-box
+   "table"
+   pose `(,width 0.8 ,depth) '(1.0 1.0 1.0 0.3)))
+
+(defun display-seat (id pose width depth &key highlight)
+  (let ((back-fraction 0.25)
+        (side-fraction 0.25)
+        (data (make-hash-table :test 'equal)))
+    (labels ((seat-relative-pose (relative-pose)
+               (cl-transforms:transform-pose
+                (tf:pose->transform pose)
+                relative-pose))
+             (seat-relative-id (relative-id)
+               (concatenate 'string id "-" relative-id))
+             (add-dataset (id coordinates dimensions color)
+               (setf (gethash id data)
+                     `(,coordinates ,dimensions ,color)))
+             (display-dataset (id)
+               (let* ((dataset (gethash id data))
+                      (coordinates (first dataset))
+                      (dimensions (second dataset))
+                      (color (third dataset)))
+                 (display-box
+                  (seat-relative-id id)
+                  (seat-relative-pose
+                   (tf:make-pose
+                    (tf:make-3d-vector
+                     (first coordinates)
+                     (second coordinates)
+                     0.0)
+                    (tf:euler->quaternion)))
+                  `(,(first dimensions) 0.005 ,(second dimensions))
+                  (cond ((string= highlight id)
+                         (append color `(1.0)))
+                        (t (let ((dim-factor 0.4))
+                             `(,(* dim-factor (first color))
+                               ,(* dim-factor (second color))
+                               ,(* dim-factor (third color))
+                               1.0))))))))
+      (add-dataset
+       "back"
+       `(0 ,(* depth (* back-fraction 1.5)))
+       `(,(* (- 1 (* 2 side-fraction)) width)
+         ,(* depth back-fraction))
+       `(1.0 0.0 1.0))
+      (add-dataset
+       "center"
+       `(0 ,(- (* depth back-fraction 0.5)))
+       `(,(* (- 1 (* 2 side-fraction)) width)
+         ,(* depth (- 1 back-fraction)))
+       `(1.0 1.0 0.0))
+      (add-dataset
+       "right"
+       `(,(* width side-fraction 1.5)
+         ,(- (* depth back-fraction 0.5)))
+       `(,(* side-fraction width)
+         ,(* depth (- 1 back-fraction)))
+       `(1.0 0.0 0.0))
+      (add-dataset
+       "left"
+       `(,(- (* width side-fraction 1.5))
+         ,(- (* depth back-fraction 0.5)))
+       `(,(* side-fraction width)
+         ,(* depth (- 1 back-fraction)))
+       `(0.0 0.0 1.0))
+      (add-dataset
+       "left-back"
+       `(,(- (* width side-fraction 1.5))
+         ,(* depth (* back-fraction 1.5)))
+       `(,(* side-fraction width)
+         ,(* depth back-fraction))
+       `(0.0 1.0 1.0))
+      (add-dataset
+       "right-back"
+       `(,(* width side-fraction 1.5)
+         ,(* depth (* back-fraction 1.5)))
+       `(,(* side-fraction width)
+         ,(* depth back-fraction))
+       `(0.0 1.0 0.0))
+      (display-dataset "back")
+      (display-dataset "center")
+      (display-dataset "right")
+      (display-dataset "left")
+      (display-dataset "left-back")
+      (display-dataset "right-back")
+      )))
