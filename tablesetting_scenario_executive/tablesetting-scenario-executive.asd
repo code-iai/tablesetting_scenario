@@ -70,13 +70,15 @@
      (:file "reasoning" :depends-on ("package"))
      (:file "utils" :depends-on ("package" "reasoning"))
      (:file "table-model" :depends-on ("package"))
+     (:file "table-setting" :depends-on ("package"))
      (:file "plan-library" :depends-on ("package"
                                         "utils"
                                         "reasoning"
                                         "costmap-metadata"
                                         "sem-map-config"
                                         "facts"
-                                        "table-model"))
+                                        "table-model"
+                                        "table-setting"))
      (:file "top-level-plans" :depends-on ("package"
                                            "utils"
                                            "reasoning"
