@@ -40,6 +40,7 @@ namespace state_informer {
       
       if(strWhat == "box") {
 	designator_integration::KeyValuePair* kvpDimensions = desigControl->childForKey("dimensions");
+	
 	if(kvpDimensions) {
 	  float fWidth = kvpDimensions->floatValue("width");
 	  float fHeight = kvpDimensions->floatValue("height");
@@ -51,6 +52,7 @@ namespace state_informer {
 	  float fA = 1.0;
 	  
 	  designator_integration::KeyValuePair* kvpColors = desigControl->childForKey("colors");
+	  
 	  if(kvpColors) {
 	    fR = kvpColors->floatValue("r");
 	    fG = kvpColors->floatValue("g");
@@ -59,6 +61,14 @@ namespace state_informer {
 	  }
 	  
 	  this->addBox(strID, psPose, fWidth, fHeight, fDepth, fR, fG, fB, fA);
+	}
+      } else if(strWhat == "mesh") {
+	designator_integration::KeyValuePair* kvpDetails = desigControl->childForKey("details");
+	
+	if(kvpDetails) {
+	  std::string strPath = kvpDetails->stringValue("path");
+	  
+	  this->addMesh(strID, psPose, strPath);
 	}
       }
     } else if(strCommand == "remove") {
@@ -97,6 +107,29 @@ namespace state_informer {
     mkrBox.color.a = fA;
     
     this->addMarker(strID, mkrBox);
+  }
+  
+  void ControlCenter::addMesh(std::string strID, geometry_msgs::Pose psPose, std::string strPath) {
+    ROS_INFO("Adding mesh '%s' at x=%f, y=%f, z=%f", strID.c_str(), psPose.position.x, psPose.position.y, psPose.position.z);
+    
+    visualization_msgs::Marker mkrMesh;
+    mkrMesh.type = visualization_msgs::Marker::MESH_RESOURCE;
+    mkrMesh.pose = psPose;
+    mkrMesh.header.frame_id = "map";
+    
+    mkrMesh.scale.x = 1.0;
+    mkrMesh.scale.y = 1.0;
+    mkrMesh.scale.z = 1.0;
+    
+    mkrMesh.color.r = 1.0;
+    mkrMesh.color.g = 1.0;
+    mkrMesh.color.b = 1.0;
+    mkrMesh.color.a = 1.0;
+    
+    mkrMesh.mesh_resource = "package://tablesetting_scenario_models/models/" + strPath;
+    mkrMesh.mesh_use_embedded_materials = true;
+    
+    this->addMarker(strID, mkrMesh);
   }
   
   void ControlCenter::addMarker(std::string strID, visualization_msgs::Marker mkrAdd) {

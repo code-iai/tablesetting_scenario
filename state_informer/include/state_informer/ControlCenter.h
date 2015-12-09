@@ -52,6 +52,7 @@ namespace state_informer {
     void imageCallback(const sensor_msgs::Image::ConstPtr imgImage);
     
     void addBox(std::string strID, geometry_msgs::Pose psPose, float fWidth, float fHeight, float fDepth, float fR, float fG, float fB, float fA);
+    void addMesh(std::string strID, geometry_msgs::Pose psPose, std::string strPath);
     
     void addMarker(std::string strID, visualization_msgs::Marker mkrAdd);
     
