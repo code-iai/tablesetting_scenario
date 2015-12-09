@@ -91,6 +91,13 @@
 (defun set-scene-detail (detail value)
   (setf (gethash detail *scene-context*) value))
 
+(defun set-random-scene ()
+  (destructuring-bind (guests meal-time week-day)
+      (generate-table-setting-problem)
+    (set-scene-detail 'guests guests)
+    (set-scene-detail 'meal-time meal-time)
+    (set-scene-detail 'week-day week-day)))
+
 (defun scene-detail (detail)
   (gethash detail *scene-context*))
 
@@ -176,12 +183,13 @@
                      `(,position seat))
                    positions))))
 
-(defun object-type->object (object-type location guest)
+(defun object-type->object (object-type location guest meal)
   (make-designator
    'object
    `((at ,location)
      (type ,object-type)
-     (for-guest ,guest))))
+     (for-guest ,guest)
+     (for-meal ,meal))))
 
 (defun order-scene-objects (objects)
   (let* ((object-seat-placement-modifiers
@@ -196,26 +204,28 @@
                         (description at))))
                 (cons object seat-placements)))
             objects)))
-    (sort object-seat-placement-modifiers
-          (lambda (set-1 set-2)
-            (mapcar
-             (lambda (modif-1)
-               (mapcar
-                (lambda (modif-2)
-                  (let ((orderings
-                          (force-ll
-                           (lazy-mapcar
-                            (lambda (bdgs)
-                              (with-vars-bound (?order) bdgs
-                                ?order))
-                            (crs:prolog
-                             `(seat-place-ordering
-                               ,modif-1 ,modif-2
-                               ?order))))))
-                    (format t "~a ~a: ~a~%" modif-1 modif-2 orderings)
-                    orderings))
-                (rest set-2)))
-             (rest set-1))))))
+    (mapcar
+     #'first
+     (sort object-seat-placement-modifiers
+           (lambda (set-1 set-2)
+             (mapcar
+              (lambda (modif-1)
+                (mapcar
+                 (lambda (modif-2)
+                   (let ((orderings
+                           (force-ll
+                            (lazy-mapcar
+                             (lambda (bdgs)
+                               (with-vars-bound (?order) bdgs
+                                 ?order))
+                             (crs:prolog
+                              `(seat-place-ordering
+                                ,modif-1 ,modif-2
+                                ?order))))))
+                     (format t "~a, ~a -> ~a~%" modif-1 modif-2 orderings)
+                     (not (find :after orderings))))
+                 (rest set-2)))
+              (rest set-1)))))))
 
 (defun required-scene-objects ()
   (let* ((lazy-scene-objects (crs:prolog `(required-object ?object)))
@@ -367,7 +377,16 @@
   (<- (preference mary dish soup)
     (context-prop meal-time dinner))
   
+  (<- (preference mary dish coffee)
+    (context-prop meal-time breakfast))
+  
   (<- (preference mary dish bread))
+
+  (<- (preference tim dish wine)
+    (context-prop meal-time dinner))
+  
+  (<- (preference mary dish wine)
+    (context-prop meal-time dinner))
   
   ;; Who sits where
   (<- (preference tim seat 2)
@@ -377,7 +396,7 @@
   (<- (preference tim seat 1)
     (context-prop-amount guests ?guest-count)
     (crs:== ?guest-count 1))
-
+  
   (<- (preference mary seat 1))
   
   ;; Objects for meals
@@ -388,7 +407,10 @@
   
   (<- (required-meal-object bread knife))
   (<- (required-meal-object bread plate))
-  (<- (required-meal-object bread cup))
+  
+  (<- (required-meal-object coffee cup))
+  
+  (<- (required-meal-object wine glass))
   
   (<- (required-meal-object soup bowl))
   (<- (required-meal-object soup spoon))
@@ -405,15 +427,15 @@
   (<- (center-relative-object-table-position ?_ near))
   
   ;; Ordering of costmap-based object placement
-  (<- (seat-place-ordering center-of left-of :before))
-  (<- (seat-place-ordering center-of right-of :before))
+  (<- (seat-place-ordering left-of ?_ :before))
+  (<- (seat-place-ordering right-of ?_ :before))
+  (<- (seat-place-ordering center-of ?_ :after))
   (<- (seat-place-ordering behind-of ?_ :before))
   (<- (seat-place-ordering near ?_ :after))
   
   (<- (seat-place-ordering ?a ?b :before)
     (seat-place-ordering ?b ?a :after))
-  (<- (seat-place-ordering ?a ?b :after)
-    (seat-place-ordering ?b ?a :before))
+  (<- (seat-place-ordering ?a ?b :after))
   
   ;; Overall collection predicates
   (<- (required-object ?object)
@@ -427,4 +449,4 @@
                ?positions)
     (crs:lisp-fun positions->seat-location ?seat ?positions ?location)
     (crs:lisp-fun object-type->object
-                  ?object-type ?location ?guest ?object)))
+                  ?object-type ?location ?guest ?meal ?object)))
