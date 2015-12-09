@@ -59,4 +59,6 @@
   (:desig-properties :on :name :grasp-type :handle
                      :pose :shape :box :cylinder
                      :type :navigation :pose :goal :trajectory
-                     :perceive :obj :to :at :reach :see :handover))
+                     :perceive :obj :to :at :reach :see :handover
+                     :seat :left-of :right-of :center-of :behind-of
+                     :near))
