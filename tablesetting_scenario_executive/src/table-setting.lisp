@@ -222,7 +222,6 @@
                               `(seat-place-ordering
                                 ,modif-1 ,modif-2
                                 ?order))))))
-                     (format t "~a, ~a -> ~a~%" modif-1 modif-2 orderings)
                      (not (find :after orderings))))
                  (rest set-2)))
               (rest set-1)))))))
