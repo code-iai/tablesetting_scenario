@@ -8,6 +8,10 @@
 // ROS
 #include <ros/ros.h>
 
+// Visualization
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
+
 // Image Transport
 #include <image_transport/image_transport.h>
 #include <image_transport/subscriber_filter.h>
@@ -27,16 +31,32 @@ namespace state_informer {
     std::shared_ptr<image_transport::Subscriber> m_isRaw;
     ros::Publisher m_pubImageOut;
     
+    ros::Publisher m_pubMarkers;
+    
     ros::ServiceServer m_srvControl;
+    
+    std::map<std::string, visualization_msgs::Marker> m_mapMarkers;
+    
+    bool m_bShouldRun;
     
   protected:
   public:
     ControlCenter(ros::NodeHandle nhHandle);
     ~ControlCenter();
     
+    void shutdown();
+    bool ok();
+    
     bool controlCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
 			 designator_integration_msgs::DesignatorCommunication::Response &res);
     void imageCallback(const sensor_msgs::Image::ConstPtr imgImage);
+    
+    void addBox(std::string strID, geometry_msgs::Pose psPose, float fWidth, float fHeight, float fDepth, float fR, float fG, float fB, float fA);
+    
+    void addMarker(std::string strID, visualization_msgs::Marker mkrAdd);
+    
+    void displayAllMarkers();
+    void removeAllMarkers();
   };
 }
 
