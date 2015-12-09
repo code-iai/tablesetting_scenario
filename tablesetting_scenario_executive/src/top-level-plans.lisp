@@ -38,21 +38,21 @@
                       (eql subject (car list-item))))))
 
 (def-top-level-cram-function tablesetting ()
-  (let* ((tablesetting-task (task))
-         (state-start nil)
-         (state-goal nil)
-         (action-sequence (task->action-sequence
-                           task state-start state-goal))
-         (loc-1 (make-designator
-                 'location
-                 `((:on :table)
-                   (:name "table_1")
-                   (:side :west)
-                   (:seat-index 0)
-                   (:location-hint :back)
-                   (:location-hint :left)))))
-    
-    tablesetting-task))
+  (set-random-scene)
+  (let* ((tablesetting-task (required-scene-objects))
+         (reordered (order-scene-objects tablesetting-task)))
+    (dolist (object reordered)
+      (format t "---~%")
+      (let* ((at (desig-prop-value object 'desig-props:at))
+             (desc (description at)))
+        (dolist (item desc)
+          (unless (or (eql (car item) 'desig-props:on)
+                      (eql (car item) 'desig-props:name))
+            (format t " - ~a ~a~%" (car item) (cadr item))))))))
+
+(defun object->perception-task (object)
+  (let ((type (desig-prop-value object 'desig-props:type)))
+    ))
 
 (def-cram-function fetch-object (object)
   )
