@@ -37,7 +37,7 @@
               :test (lambda (subject list-item)
                       (eql subject (car list-item))))))
 
-(def-top-level-cram-function tablesetting ()
+(def-top-level-cram-function tablesetting-highlight ()
   (set-random-scene)
   (let* ((tablesetting-task (required-scene-objects))
          (reordered (order-scene-objects tablesetting-task))
@@ -62,15 +62,62 @@
                     reordered))))
     (display-table-scene :highlight seats)))
 
+(def-top-level-cram-function tablesetting ()
+  (set-random-scene)
+  (let* ((tablesetting-task (required-scene-objects))
+         (reordered (order-scene-objects tablesetting-task)))
+    (dolist (object reordered)
+      (let* ((new-location (object-location object))
+             (refactored-object
+              (copy-designator
+               object :new-description `((at ,new-location)))))
+        (fetch-object refactored-object)
+        (let ((target-location (desig-prop-value object 'at)))
+          (place-object refactored-object target-location))))))
+
+(defun object-location (object)
+  (let ((type (desig-prop-value object 'type)))
+    (make-designator
+     'location
+     (location-for-object-type type))))
+
+(defun location-for-object-type (type)
+  (case type
+    (cup `((in cupboard)
+           (name "cupboard-1")))
+    (milkbox `((in fridge)))
+    (plate `((in cupboard)
+             (name "cupboard-1")))
+    (knife `((in drawer)
+             (name "drawer-1")))
+    (spoon `((in drawer)
+             (name "drawer-1")))
+    (glass `((in cupboard)
+             (name "cupboard-1")))))
+
 (defun object->perception-task (object)
   (let ((type (desig-prop-value object 'desig-props:type)))
-    ))
+    (append `((type ,type))
+            (case type
+              (cup `((shape round) (size small) (color white)))
+              (milkbox `((shape box) (color blue) (size medium)))
+              (plate `((shape flat) (color white)))
+              (knife `((shape flat) (color red)))
+              (spoon `((shape flat) (color red)))
+              (glass `((shape round) (size small) (color white)))))))
 
 (def-cram-function fetch-object (object)
-  )
+  (let* ((potential-residence (desig-prop-value object 'at))
+         (perception-task (object->perception-task object)))
+    (format t "Fetching ~a from ~a~%"
+            (desig-prop-value object 'type)
+            (description potential-residence))
+    (format t "Perception task: ~a~%" perception-task)))
 
-(def-cram-function place-object (object place)
-  )
+(def-cram-function place-object (object location)
+  (format t "Placing ~a at seat ~a~%"
+          (desig-prop-value object 'type)
+          (desig-prop-value location 'seat)))
 
 (defun task ()
   `((:task-type :tablesetting)
