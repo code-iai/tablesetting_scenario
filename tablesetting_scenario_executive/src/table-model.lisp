@@ -114,7 +114,7 @@
         (b ,(third colors))
         (a ,(fourth colors))))))))
 
-(defun display-mesh (id pose path)
+(defun display-mesh (id pose path &key (rotation (tf:euler->quaternion)) (scale 1.0))
   (desig-int:call-designator-service
    "/state_informer/control"
    (make-designator
@@ -122,9 +122,24 @@
     `((command "add")
       (what "mesh")
       (id ,id)
-      (where ,pose)
+      (where ,(cl-transforms:transform-pose
+               (tf:pose->transform pose)
+               (tf:make-pose
+                (tf:make-3d-vector 0 0 0)
+                rotation)))
       (details
-       ((path ,path)))))))
+       ((path ,path)
+        (scale ,scale)))))))
+
+(defun display-candlestick (id x y z)
+  (display-mesh
+   id
+   (tf:make-pose
+    (tf:make-3d-vector x y z)
+    (tf:euler->quaternion))
+   "accessories/candlestick/candlestick.stl"
+   :rotation (tf:euler->quaternion :ax (/ pi 2))
+   :scale 0.03))
 
 (defun display-table-scene (&key highlight)
   (let* ((table-width 1.5)
@@ -135,6 +150,9 @@
                       (tf:euler->quaternion)))
          (seat-width 0.6)
          (seat-depth 0.4))
+    (display-candlestick "candle-1" 0.1 0.0 table-height)
+    (display-candlestick "candle-2" 0.0 0.1 table-height)
+    (display-candlestick "candle-3" -0.1 -0.1 table-height)
     (labels ((table-relative-pose (relative-pose)
                (cl-transforms:transform-pose
                 (tf:pose->transform table-pose)
@@ -304,5 +322,4 @@
       (display-dataset "right")
       (display-dataset "left")
       (display-dataset "left-back")
-      (display-dataset "right-back")
-      )))
+      (display-dataset "right-back"))))

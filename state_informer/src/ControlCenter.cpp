@@ -67,8 +67,9 @@ namespace state_informer {
 	
 	if(kvpDetails) {
 	  std::string strPath = kvpDetails->stringValue("path");
+	  float fScale = kvpDetails->floatValue("scale");
 	  
-	  this->addMesh(strID, psPose, strPath);
+	  this->addMesh(strID, psPose, strPath, fScale);
 	}
       }
     } else if(strCommand == "remove") {
@@ -109,7 +110,7 @@ namespace state_informer {
     this->addMarker(strID, mkrBox);
   }
   
-  void ControlCenter::addMesh(std::string strID, geometry_msgs::Pose psPose, std::string strPath) {
+  void ControlCenter::addMesh(std::string strID, geometry_msgs::Pose psPose, std::string strPath, float fScale) {
     ROS_INFO("Adding mesh '%s' at x=%f, y=%f, z=%f", strID.c_str(), psPose.position.x, psPose.position.y, psPose.position.z);
     
     visualization_msgs::Marker mkrMesh;
@@ -117,9 +118,9 @@ namespace state_informer {
     mkrMesh.pose = psPose;
     mkrMesh.header.frame_id = "map";
     
-    mkrMesh.scale.x = 1.0;
-    mkrMesh.scale.y = 1.0;
-    mkrMesh.scale.z = 1.0;
+    mkrMesh.scale.x = fScale;
+    mkrMesh.scale.y = fScale;
+    mkrMesh.scale.z = fScale;
     
     mkrMesh.color.r = 1.0;
     mkrMesh.color.g = 1.0;
