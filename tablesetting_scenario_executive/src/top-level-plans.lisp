@@ -136,28 +136,58 @@
                    (close-cupboard))
                   ((find `(on table) desc :test #'equal))))))
 
+(def-cram-function approach (desc)
+  (cpl:with-retry-counters ((nav-retry-counter 3))
+    (cpl:with-failure-handling
+        ((cram-plan-failures:location-not-reached-failure (f)
+           (declare (ignore f))
+           (cpl:do-retry nav-retry-counter
+             (cpl:retry))))
+      ;; TODO(winkler): Navigate here.
+      )))
+
 (def-cram-function approach-table (desc)
+  (approach desc)
   (format t "Approaching table~%"))
 
 (def-cram-function open-drawer (desc)
-  (format t "Opening drawer~%"))
+  (approach desc)
+  (format t "Opening drawer~%")
+  ;; TODO(winkler): Open drawer
+  )
 
 (def-cram-function open-fridge (desc)
-  (format t "Opening fridge~%"))
+  (approach desc)
+  (format t "Opening fridge~%")
+  ;; TODO(winkler): Open fridge
+  )
 
 (def-cram-function open-cupboard (desc)
-  (format t "Opening cupboard~%"))
+  (approach desc)
+  (format t "Opening cupboard~%")
+  ;; TODO(winkler): Open cupboard
+  )
 
 (def-cram-function close-drawer (desc)
-  (format t "Closing drawer~%"))
+  (approach desc)
+  (format t "Closing drawer~%")
+  ;; TODO(winkler): Close drawer
+  )
 
 (def-cram-function close-fridge (desc)
-  (format t "Closing fridge~%"))
+  (approach desc)
+  (format t "Closing fridge~%")
+  ;; TODO(winkler): Close fridge
+  )
 
 (def-cram-function close-cupboard (desc)
-  (format t "Closing cupboard~%"))
+  (approach desc)
+  (format t "Closing cupboard~%")
+  ;; TODO(winkler): Close cupboard
+  )
 
 (def-cram-function place-object (object location)
+  (approach (description location))
   (format t "Placing ~a at seat ~a~%"
           (desig-prop-value object 'type)
           (desig-prop-value location 'seat)))
