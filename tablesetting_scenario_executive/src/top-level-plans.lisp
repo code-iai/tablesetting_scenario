@@ -151,40 +151,76 @@
   (format t "Approaching table~%"))
 
 (def-cram-function open-drawer (desc)
-  (approach desc)
-  (format t "Opening drawer~%")
-  ;; TODO(winkler): Open drawer
-  )
+  (cpl:with-retry-counters ((retry-counter 3))
+    (cpl:with-failure-handling
+        ((cram-plan-failures:manipulation-pose-unreachable (f)
+           (declare (ignore f))
+           (cpl:do-retry retry-counter
+             (cpl:retry))))
+      (approach desc)
+      (format t "Opening drawer~%")
+      ;; TODO(winkler): Open drawer
+      )))
 
 (def-cram-function open-fridge (desc)
-  (approach desc)
-  (format t "Opening fridge~%")
-  ;; TODO(winkler): Open fridge
-  )
+  (cpl:with-retry-counters ((retry-counter 3))
+    (cpl:with-failure-handling
+        ((cram-plan-failures:manipulation-pose-unreachable (f)
+           (declare (ignore f))
+           (cpl:do-retry retry-counter
+             (cpl:retry))))
+      (approach desc)
+      (format t "Opening fridge~%")
+      ;; TODO(winkler): Open fridge
+      )))
 
 (def-cram-function open-cupboard (desc)
-  (approach desc)
-  (format t "Opening cupboard~%")
-  ;; TODO(winkler): Open cupboard
-  )
+  (cpl:with-retry-counters ((retry-counter 3))
+    (cpl:with-failure-handling
+        ((cram-plan-failures:manipulation-pose-unreachable (f)
+           (declare (ignore f))
+           (cpl:do-retry retry-counter
+             (cpl:retry))))
+      (approach desc)
+      (format t "Opening cupboard~%")
+      ;; TODO(winkler): Open cupboard
+      )))
 
 (def-cram-function close-drawer (desc)
-  (approach desc)
-  (format t "Closing drawer~%")
-  ;; TODO(winkler): Close drawer
-  )
+  (cpl:with-retry-counters ((retry-counter 3))
+    (cpl:with-failure-handling
+        ((cram-plan-failures:manipulation-pose-unreachable (f)
+           (declare (ignore f))
+           (cpl:do-retry retry-counter
+             (cpl:retry))))
+      (approach desc)
+      (format t "Closing drawer~%")
+      ;; TODO(winkler): Close drawer
+      )))
 
 (def-cram-function close-fridge (desc)
-  (approach desc)
-  (format t "Closing fridge~%")
-  ;; TODO(winkler): Close fridge
-  )
+  (cpl:with-retry-counters ((retry-counter 3))
+    (cpl:with-failure-handling
+        ((cram-plan-failures:manipulation-pose-unreachable (f)
+           (declare (ignore f))
+           (cpl:do-retry retry-counter
+             (cpl:retry))))
+      (approach desc)
+      (format t "Closing fridge~%")
+      ;; TODO(winkler): Close fridge
+      )))
 
 (def-cram-function close-cupboard (desc)
-  (approach desc)
-  (format t "Closing cupboard~%")
-  ;; TODO(winkler): Close cupboard
-  )
+  (cpl:with-retry-counters ((retry-counter 3))
+    (cpl:with-failure-handling
+        ((cram-plan-failures:manipulation-pose-unreachable (f)
+           (declare (ignore f))
+           (cpl:do-retry retry-counter
+             (cpl:retry))))
+      (approach desc)
+      (format t "Closing cupboard~%")
+      ;; TODO(winkler): Close cupboard
+      )))
 
 (def-cram-function place-object (object location)
   (approach (description location))
