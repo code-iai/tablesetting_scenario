@@ -70,7 +70,10 @@
       (let* ((new-location (object-location object))
              (refactored-object
               (copy-designator
-               object :new-description `((at ,new-location)))))
+               object
+               :new-description
+               (append `((at ,new-location))
+                       (object->perception-task object)))))
         (fetch-object refactored-object)
         (let ((target-location (desig-prop-value object 'at)))
           (place-object refactored-object target-location))))))
@@ -108,25 +111,53 @@
 
 (def-cram-function fetch-object (object)
   (let* ((potential-residence (desig-prop-value object 'at))
-         (perception-task (object->perception-task object)))
-    (format t "Fetching ~a from ~a~%"
-            (desig-prop-value object 'type)
-            (description potential-residence))
-    (format t "Perception task: ~a~%" perception-task)))
+         (perception-task (object->perception-task object))
+         (desc (description potential-residence)))
+    (articulate-environment :before desc)
+    (format t "Fetching ~a from ~a~%" (desig-prop-value object 'type) desc)
+    (format t "Perception task: ~a~%" perception-task)
+    (articulate-environment :after desc)))
+
+(def-cram-function articulate-environment (modifier desc)
+  (case modifier
+    (:before (cond ((find `(in drawer) desc :test #'equal)
+                    (open-drawer desc))
+                   ((find `(in fridge) desc :test #'equal)
+                    (open-fridge desc))
+                   ((find `(in cupboard) desc :test #'equal)
+                    (open-cupboard desc))
+                   ((find `(on table) desc :test #'equal)
+                    (approach-table))))
+    (:after (cond ((find `(in drawer) desc :test #'equal)
+                   (close-drawer desc))
+                  ((find `(in fridge) desc :test #'equal)
+                   (close-fridge desc))
+                  ((find `(in cupboard) desc :test #'equal)
+                   (close-cupboard))
+                  ((find `(on table) desc :test #'equal))))))
+
+(def-cram-function approach-table (desc)
+  (format t "Approaching table~%"))
+
+(def-cram-function open-drawer (desc)
+  (format t "Opening drawer~%"))
+
+(def-cram-function open-fridge (desc)
+  (format t "Opening fridge~%"))
+
+(def-cram-function open-cupboard (desc)
+  (format t "Opening cupboard~%"))
+
+(def-cram-function close-drawer (desc)
+  (format t "Closing drawer~%"))
+
+(def-cram-function close-fridge (desc)
+  (format t "Closing fridge~%"))
+
+(def-cram-function close-cupboard (desc)
+  (format t "Closing cupboard~%"))
 
 (def-cram-function place-object (object location)
   (format t "Placing ~a at seat ~a~%"
           (desig-prop-value object 'type)
           (desig-prop-value location 'seat)))
-
-(defun task ()
-  `((:task-type :tablesetting)
-    (:task-details
-     (:guests (tim mary))
-     (:weekday :monday)
-     (:meal-time :breakfast))))
-
-(defun task->action-seqeuence (task state-start state-goal)
-  (ecase (task-detail task :task-type)
-    (:tablesetting
-     )))
