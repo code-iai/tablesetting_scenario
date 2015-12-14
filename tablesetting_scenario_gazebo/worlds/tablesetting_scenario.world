@@ -12,24 +12,24 @@
     </include>
     
     <!-- The shopping area (walls) -->
-    <model name="tablesetting_area">
+    <!--model name="tablesetting_area">
       <static>true</static>
       <include>
 	<uri>model://tablesetting_area</uri>
       </include>
       
       <pose>2.720 0.295 0.000 0.000 0.000 -1.570</pose>
-    </model>
+    </model-->
     
     <!-- The shopping rack -->
-    <model name="shopping_rack">
+    <!--model name="shopping_rack">
       <static>true</static>
       <include>
 	<uri>model://shopping_rack</uri>
       </include>
       
       <pose>1.275 0.214 0.000 0.000 0.000 -1.570</pose>
-    </model>
+    </model-->
     
     <plugin name="attache" filename="libattache.so"/>
   </world>

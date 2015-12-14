@@ -17,4 +17,8 @@
   <!--include file="$(find pr2_gazebo)/launch/pr2.launch"/-->
   <include file="$(find tablesetting_scenario_gazebo)/launch/pr2.launch"/>
   
+  <include file="$(find iai_maps)/launch/kitchen_with_state_publisher.launch"/>
+  
+  <node pkg="gazebo_ros" name="spawn_kitchen" type="spawn_model" args="-urdf -param kitchen_description -model kitchen -x -3.45 -y -4.35 -Y 3.1415" />
+
 </launch>
