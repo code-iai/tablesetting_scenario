@@ -27,9 +27,9 @@
 
 (in-package :tablesetting-scenario-executive)
 
-(ql:quickload "vecto")
-(ql:quickload "flexi-streams")
-(ql:quickload "png")
+;(ql:quickload "vecto")
+;(ql:quickload "flexi-streams")
+;(ql:quickload "png")
 
 (deftype table-side () '(member :east :west :north :south))
 
@@ -63,13 +63,13 @@
      ,(make-seat :east 0)
      ,(make-seat :east 1))))
 
-(defun draw-table (table)
-  (vecto:with-canvas (:width 100 :height 100)
-    (vecto:set-rgb-fill 1.0 0.65 0.3)
-    (vecto:rounded-rectangle 0 0 100 100 10 10)
-    (vecto:fill-path)
-    (flexi-streams:with-output-to-sequence (output)
-      (vecto:save-png-stream output))))
+;; (defun draw-table (table)
+;;   (vecto:with-canvas (:width 100 :height 100)
+;;     (vecto:set-rgb-fill 1.0 0.65 0.3)
+;;     (vecto:rounded-rectangle 0 0 100 100 10 10)
+;;     (vecto:fill-path)
+;;     (flexi-streams:with-output-to-sequence (output)
+;;       (vecto:save-png-stream output))))
 
 (defun create-png-image-message (data)
   (roslisp:make-message
@@ -77,15 +77,15 @@
    :format "png"
    :data data))
 
-(defun test-state-informer-png ()
-  (let ((adv (roslisp:advertise "/state_informer/compressed_image_in/compressed" "sensor_msgs/CompressedImage")))
-    (roslisp:publish
-     adv
-     (create-png-image-message
-      (flexi-streams:with-output-to-sequence (output)
-        (flexi-streams:with-input-from-sequence
-            (input (draw-table nil))
-          (png:encode (png:decode input) output)))))))
+;; (defun test-state-informer-png ()
+;;   (let ((adv (roslisp:advertise "/state_informer/compressed_image_in/compressed" "sensor_msgs/CompressedImage")))
+;;     (roslisp:publish
+;;      adv
+;;      (create-png-image-message
+;;       (flexi-streams:with-output-to-sequence (output)
+;;         (flexi-streams:with-input-from-sequence
+;;             (input (draw-table nil))
+;;           (png:encode (png:decode input) output)))))))
 
 (defun remove-marker (id)
   (desig-int:call-designator-service
