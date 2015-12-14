@@ -40,6 +40,7 @@
 :- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/tablesetting_rack.owl').*/
 :- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/table.owl').
 :- owl_parser:owl_parse('package://iai_semantic_maps/owl/iai_maps_addons.owl').
-:- owl_parser:owl_parse('package://iai_semantic_maps/owl/kitchen.owl').
+:- owl_parser:owl_parse('package://iai_semantic_maps/owl/room.owl').
 
 :- rdf_db:rdf_register_ns(knowrob, 'http://ias.cs.tum.edu/kb/knowrob.owl#', [keep(true)]).
+
