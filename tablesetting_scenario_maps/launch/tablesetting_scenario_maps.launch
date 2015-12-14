@@ -1,7 +1,11 @@
 <launch>
   
-  <include file="$(find tablesetting_scenario_maps)/launch/descriptions.launch" />
-  <include file="$(find tablesetting_scenario_maps)/launch/transformations.launch" />
-  <include file="$(find tablesetting_scenario_maps)/launch/map.launch" />
+  <!--include file="$(find tablesetting_scenario_maps)/launch/descriptions.launch" /-->
+  <!--include file="$(find tablesetting_scenario_maps)/launch/transformations.launch" /-->
+  <!--include file="$(find tablesetting_scenario_maps)/launch/map.launch" /-->
+  
+  <include file="$(find iai_maps)/launch/iai_maps.launch" />
+  <include file="$(find pr2_gazebo)/launch/pr2_empty_world.launch" />
+  <node pkg="gazebo_ros" name="spawn_kitchen" type="spawn_model" args="-urdf -param kitchen_description -model kitchen -x -3.45 -y -4.35 -Y 3.1415" />
   
 </launch>
