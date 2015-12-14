@@ -159,6 +159,7 @@
                       ,(tf:z scene-rot-quaternion)
                       ,(tf:w scene-rot-quaternion)))
          (scene-trans `(-3.45 -4.35 0)))
+    (format t "~a~%" (get-robot-pose))
     (force-ll
      (crs:prolog
       `(and (btr:clear-bullet-world)
@@ -176,7 +177,6 @@
                      ?w btr:semantic-map sem-map-kitchen
                      (,scene-trans ,scene-rot)
                      :urdf ,urdf-kitchen)))))))
-
 (defun init-btr-perception ()
   (cram-environment-representation:ignore-bullet-object-during-perception "floor")
   (cram-environment-representation:ignore-bullet-object-during-perception 'floor)

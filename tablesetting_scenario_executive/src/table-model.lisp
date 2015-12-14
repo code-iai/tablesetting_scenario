@@ -223,10 +223,12 @@
      (write-to-string index))))
 
 (defun table-definition ()
-  `((:north 1)
-    (:south 1)
-    (:west 2)
-    (:east 2)))
+  `((:east 2)))
+
+(defmethod get-sem-map-obj (name)
+  (let* ((parts (slot-value (sem-map-utils:get-semantic-map) 'sem-map-utils::parts))
+         (part (gethash name parts)))
+    part))
 
 (defun indexed-table-seat (index)
   (let* ((definitions (table-definition))

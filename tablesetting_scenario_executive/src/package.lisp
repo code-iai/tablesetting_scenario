@@ -61,4 +61,4 @@
                      :type :navigation :pose :goal :trajectory
                      :perceive :obj :to :at :reach :see :handover
                      :seat :left-of :right-of :center-of :behind-of
-                     :near))
+                     :near :in-front-of))

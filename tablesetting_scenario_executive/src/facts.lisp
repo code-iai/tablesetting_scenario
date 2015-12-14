@@ -43,25 +43,15 @@
               1.0d0)
           0.0d0))))
 
-(defun make-rack-facing-orientation-generator (object-acted-on)
-  (declare (ignore object-acted-on))
-  (let ((position (tf:make-identity-vector)))
-    (location-costmap:make-orientation-generator
-     (alexandria:rcurry (lambda (x y position)
-                          (declare (ignore x y position))
-                          ;; This always faces forward for now and
-                          ;; impicitly only takes one rack into
-                          ;; account. `object-acted-on', `x', and `y'
-                          ;; don't have any effect right now.
-                          0)
-                        position))))
+(defun make-scenario-in-front-of-seat-distribution-cost-function (seat)
+  )
 
 (defmethod costmap-generator-name->score
     ((name (common-lisp:eql 'scenario-area-restriction-distribution)))
   100)
 
 (defmethod costmap-generator-name->score
-    ((name (common-lisp:eql 'scenario-rackposition-restriction-distribution)))
+    ((name (common-lisp:eql 'scenario-in-front-of-seat-distribution)))
   101)
 
 (defun object-color (colors color)
@@ -105,27 +95,20 @@
 (def-fact-group scenario-costmap-area-restriction (desig-costmap)
   
   (<- (desig-costmap ?desig ?cm)
+    (desig-prop ?desig (desig-props:in-front-of desig-props:seat))
+    (desig-prop ?desig (desig-props:seat ?seat))
+    (costmap ?cm)
+    (costmap-add-function
+     scenario-in-front-of-seat-distribution
+     (make-scenario-in-front-of-seat-distribution-cost-function ?seat)))
+  
+  (<- (desig-costmap ?desig ?cm)
     (or (desig-prop ?desig (desig-props:to desig-props:see))
         (desig-prop ?desig (desig-props:to desig-props:reach))
         (desig-prop ?desig (desig-props:on Cupboard)))
     (costmap ?cm)
     (costmap-add-function scenario-area-restriction-distribution
                           (make-scenario-area-restriction-cost-function)
-                          ?cm)
-    (costmap-add-orientation-generator
-     (make-rack-facing-orientation-generator ?desig)
-     ?cm))
-
-  (<- (desig-costmap ?desig ?cm)
-    (crs:fail)
-    (desig-prop ?desig (desig-props:to desig-props:reach))
-    (desig-prop ?desig (desig-props:obj ?obj))
-    (current-designator ?obj ?current-obj)
-    (desig-prop ?current-obj (desig-props:at ?at))
-    (desig-prop ?at (desig-props:pose ?pose))
-    (costmap ?cm)
-    (costmap-add-function scenario-rackposition-restriction-distribution
-                          (make-scenario-rackposition-restriction-distribution ?pose)
                           ?cm)))
 
 (def-fact-group inference-facts (infer-object-property object-handle)
