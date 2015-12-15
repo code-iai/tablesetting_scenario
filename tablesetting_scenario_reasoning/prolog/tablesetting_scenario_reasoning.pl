@@ -33,12 +33,18 @@
 :- module(tablesetting_scenario_reasoning,
     [
       table/1,
+      storage_location/2,
+      semantic_reference/2,
+      tablesetting_object/1,
+      assert_tablesetting_object/2,
+      object_urdf_path/2,
       seat/2,
       seat_area/2,
       area_location/2,
       location_hint/2,
       seat_position_index/2,
-      seat_position_side/2
+      seat_position_side/2,
+      ts_call/3
     ]).
 
 
@@ -51,12 +57,18 @@
 
 :-  rdf_meta
     table(r),
+    storage_location(r, r),
+    semantic_reference(r, r),
+    assert_tablesetting_object(r, r),
+    tablesetting_object(r),
     seat(r, r),
     seat_area(r, r),
     area_location(r, r),
     location_hint(r, r),
     seat_position_index(r, r),
-    seat_position_side(r, r).
+    seat_position_side(r, r),
+    object_urdf_path(r, r),
+    ts_call(r, r, r).
 
 
 :- rdf_db:rdf_register_ns(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#', [keep(true)]).
@@ -69,6 +81,48 @@
 table(Table) :-
     rdf_has(Table, rdf:type, A),
     rdf_reachable(A, rdfs:subClassOf, knowrob:'MealTable').
+
+
+%% ts_call(?Function, ?Parameters, ?Result) is nondet.
+%
+% Calls a function in the Java class 'TablesettingReasoner'. This is a shorthand for jpl_new... and jpl_call... specific to RackReasoner.
+%
+% @param Function     The function to call
+% @param Parameters   The parameters to pass to the function
+% @param Result       The returned result
+%
+ts_call(Function, Parameters, Result) :-
+    jpl_new('org.knowrob.tablesetting_scenario_reasoning.TablesettingReasoner', [], TS),
+    jpl_call(TS, Function, Parameters, Result).
+
+
+%% storage_location(?StorageLocation, ?LocationType) is nondet.
+storage_location(StorageLocation, LocationType) :-
+    rdf_has(StorageLocation, rdf:type, A),
+    rdf_reachable(A, rdfs:subClassOf, knowrob:'StorageLocation'),
+    rdf_has(StorageLocation, knowrob:'locationType', literal(type(_, LocationType))).
+
+
+%% tablesetting_object(?Object) is nondet.
+tablesetting_object(Object) :-
+    rdf_has(Object, rdf:type, A),
+    rdf_reachable(A, rdfs:subClassOf, knowrob:'TablesettingObject').
+
+
+%% assert_tablesetting_object(?Instance, ?Type) is nondet.
+assert_tablesetting_object(Instance, Type) :-
+    rdf_instance_from_class(Type, Instance).
+
+
+%% semantic_reference(?Location, ?Reference)
+semantic_reference(Location, Reference) :-
+    rdf_has(Location, knowrob:'semanticReference', Reference).
+
+
+%% object_urdf_path(?Object, ?URDFPath) is nondet.
+object_urdf_path(Object, URDFPath) :-
+    owl_has(Object, knowrob:'urdf', literal(type(_, URDFRelative))),
+    ts_call('resolveRelativePath', [URDFRelative], URDFPath).
 
 
 %% seat(?Table, ?Seat) is nondet.
