@@ -39,6 +39,8 @@
 /**:- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/tablesetting_area.owl').
 :- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/tablesetting_rack.owl').*/
 :- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/table.owl').
+:- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/eating_area.owl').
+:- owl_parser:owl_parse('package://tablesetting_scenario_models/owl/objects.owl').
 :- owl_parser:owl_parse('package://iai_semantic_maps/owl/iai_maps_addons.owl').
 :- owl_parser:owl_parse('package://iai_semantic_maps/owl/room.owl').
 

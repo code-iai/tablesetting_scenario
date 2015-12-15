@@ -76,8 +76,54 @@
     <owl:Class rdf:about="&knowrob;SemanticHandle"/>
     
     <!-- Object Classes -->
-    <owl:Class rdf:about="&knowrob;TablesettingItem">
+    <owl:Class rdf:about="&knowrob;TablesettingObject">
       <rdfs:subClassOf rdf:resource="&knowrob;HumanScaleObject"/>
+    </owl:Class>
+    
+    <owl:Class rdf:about="&knowrob;Plate">
+      <rdfs:subClassOf rdf:resource="&knowrob;TablesettingObject"/>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;urdf"/>
+          <owl:hasValue rdf:datatype="&xsd;string">package://tablesetting_scenario_models/models/plate/plate.urdf</owl:hasValue>
+	</owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;widthOfObject"/>
+          <owl:hasValue rdf:datatype="&xsd;double">0.16</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;depthOfObject"/>
+          <owl:hasValue rdf:datatype="&xsd;double">0.16</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;heightOfObject"/>
+          <owl:hasValue rdf:datatype="&xsd;double">0.02</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;commonStorageLocation"/>
+          <owl:hasValue rdf:datatype="&xsd;string">counter</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;commonStorageLocation"/>
+          <owl:hasValue rdf:datatype="&xsd;string">drawer</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
     </owl:Class>
     
 </rdf:RDF>
