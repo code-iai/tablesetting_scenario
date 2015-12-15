@@ -80,14 +80,13 @@
        (with-first-prolog-vars-bound (?semanticreference)
            `("semantic_reference" ,loc-string ?semanticreference)
          (let* ((ref (split-prolog-symbol (json-symbol->string ?semanticreference)))
-                (type-symbol (intern (string-upcase (json-symbol->string ?type))
-                                     :keyword)))
-           (when (or (not type) (eql type type-symbol))
-             (let ((desig-modif (case type-symbol
-                                  (:counter `(desig-props:on Cupboard))
-                                  (:fridge `(desig-props:in Fridge))
-                                  (:sink `(desig-props:in Sink))
-                                  (:drawer `(desig-props:in Drawer)))))
+                (type-str (json-symbol->string ?type)))
+           (when (or (not type) (string= type type-str))
+             (let ((desig-modif (cond
+                                  ((string= type-str "counter")
+                                   `(desig-props:on Cupboard))
+                                  ((string= type-str "drawer")
+                                   `(desig-props:on Cupboard)))))
                (make-designator 'location `(,desig-modif (desig-props:name ,ref)))))))))))
 
 (defun assert-tablesetting-object (type)
@@ -105,10 +104,33 @@
       `("object_urdf_path" ,(add-prolog-namespace object) ?urdfpath)
     (json-symbol->string ?urdfpath)))
 
-(defun spawn-new-instance (type pose)
+(defun common-storage-location (object)
+  (with-prolog-vars-bound (?location)
+      `("common_storage_location" ,(add-prolog-namespace object) ?location)
+    (json-symbol->string ?location)))
+
+(defun spawn-new-instance-at-common-place (type)
   (let* ((instance (assert-tablesetting-object type))
-         (urdf (object-urdf-path instance)))
+         (f (format t "1 ~a~%" instance))
+         (common-location-types (common-storage-location instance))
+         (f (format t "2 ~a~%" common-location-types))
+         (random-location-type (elt common-location-types
+                                    (random (length common-location-types))))
+         (f (format t "3 ~a~%" random-location-type))
+         (locations (storage-locations random-location-type))
+         (f (format t "4 ~a~%" locations))
+         (random-location (elt locations (random (length locations))))
+         (f (format t "5 ~a~%" random-location))
+         (pose (reference random-location)))
+    (spawn-instance instance pose)))
+
+(defun spawn-instance (instance pose)
+  (let* ((urdf (object-urdf-path instance)))
     (cram-gazebo-utilities:spawn-gazebo-model instance pose urdf)))
+
+(defun spawn-new-instance (type pose)
+  (let* ((instance (assert-tablesetting-object type)))
+    (spawn-instance instance pose)))
 
 (defun get-shopping-items ()
   "Returns all shopping items known in the current semantic environment."

@@ -44,7 +44,8 @@
       location_hint/2,
       seat_position_index/2,
       seat_position_side/2,
-      ts_call/3
+      ts_call/3,
+      common_storage_location/2
     ]).
 
 
@@ -68,7 +69,8 @@
     seat_position_index(r, r),
     seat_position_side(r, r),
     object_urdf_path(r, r),
-    ts_call(r, r, r).
+    ts_call(r, r, r),
+    common_storage_location(r, r).
 
 
 :- rdf_db:rdf_register_ns(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#', [keep(true)]).
@@ -123,6 +125,11 @@ semantic_reference(Location, Reference) :-
 object_urdf_path(Object, URDFPath) :-
     owl_has(Object, knowrob:'urdf', literal(type(_, URDFRelative))),
     ts_call('resolveRelativePath', [URDFRelative], URDFPath).
+
+
+%% common_storage_location(?Object, ?Location) is nondet.
+common_storage_location(Object, Location) :-
+    owl_has(Object, knowrob:'commonStorageLocation', literal(type(_, Location))).
 
 
 %% seat(?Table, ?Seat) is nondet.
