@@ -114,6 +114,13 @@
     <knowrob:locationType rdf:datatype="&xsd;string">counter</knowrob:locationType>
     <knowrob:semanticReference rdf:resource="&knowrob;kitchen_island"/>
   </owl:NamedIndividual>
+
+
+  <owl:NamedIndividual rdf:about="&knowrob;StorageLocation_csh20y430eh">
+    <rdf:type rdf:resource="&knowrob;StorageLocation"/>
+    <knowrob:locationType rdf:datatype="&xsd;string">counter</knowrob:locationType>
+    <knowrob:semanticReference rdf:resource="&knowrob;kitchen_sink_block"/>
+  </owl:NamedIndividual>
   
   
   <!-- Map Individual -->
