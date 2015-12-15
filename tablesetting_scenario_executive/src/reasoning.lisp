@@ -89,7 +89,26 @@
                                   (:sink `(desig-props:in Sink))
                                   (:drawer `(desig-props:in Drawer)))))
                (make-designator 'location `(,desig-modif (desig-props:name ,ref)))))))))))
-             
+
+(defun assert-tablesetting-object (type)
+  (with-first-prolog-vars-bound (?instance)
+      `("assert_tablesetting_object" ?instance ,(add-prolog-namespace type))
+    (split-prolog-symbol (json-symbol->string ?instance))))
+
+(defun tablesetting-objects ()
+  (with-prolog-vars-bound (?object)
+      `("tablesetting_object" ?object)
+    (split-prolog-symbol (json-symbol->string ?object))))
+
+(defun object-urdf-path (object)
+  (with-first-prolog-vars-bound (?urdfpath)
+      `("object_urdf_path" ,(add-prolog-namespace object) ?urdfpath)
+    (json-symbol->string ?urdfpath)))
+
+(defun spawn-new-instance (type pose)
+  (let* ((instance (assert-tablesetting-object type))
+         (urdf (object-urdf-path instance)))
+    (cram-gazebo-utilities:spawn-gazebo-model instance pose urdf)))
 
 (defun get-shopping-items ()
   "Returns all shopping items known in the current semantic environment."
