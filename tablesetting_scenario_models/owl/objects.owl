@@ -118,12 +118,12 @@
         </owl:Restriction>
       </rdfs:subClassOf>
       
-      <rdfs:subClassOf>
+      <!--rdfs:subClassOf>
         <owl:Restriction>
           <owl:onProperty rdf:resource="&knowrob;commonStorageLocation"/>
           <owl:hasValue rdf:datatype="&xsd;string">drawer</owl:hasValue>
         </owl:Restriction>
-      </rdfs:subClassOf>
+      </rdfs:subClassOf-->
     </owl:Class>
     
 </rdf:RDF>
