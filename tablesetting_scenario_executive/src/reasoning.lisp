@@ -71,6 +71,26 @@
    (json-symbol->string (write-to-string delimiter))
    symbol))
 
+(defun storage-locations (&optional type)
+  (remove-if-not
+   #'identity
+   (with-prolog-vars-bound (?location ?type)
+       `("storage_location" ?location ?type)
+     (let ((loc-string (json-symbol->string ?location)))
+       (with-first-prolog-vars-bound (?semanticreference)
+           `("semantic_reference" ,loc-string ?semanticreference)
+         (let* ((ref (split-prolog-symbol (json-symbol->string ?semanticreference)))
+                (type-symbol (intern (string-upcase (json-symbol->string ?type))
+                                     :keyword)))
+           (when (or (not type) (eql type type-symbol))
+             (let ((desig-modif (case type-symbol
+                                  (:counter `(desig-props:on Cupboard))
+                                  (:fridge `(desig-props:in Fridge))
+                                  (:sink `(desig-props:in Sink))
+                                  (:drawer `(desig-props:in Drawer)))))
+               (make-designator 'location `(,desig-modif (desig-props:name ,ref)))))))))))
+             
+
 (defun get-shopping-items ()
   "Returns all shopping items known in the current semantic environment."
   (with-prolog-vars-bound (?item)
