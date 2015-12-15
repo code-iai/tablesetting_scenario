@@ -111,18 +111,20 @@
 
 (defun spawn-new-instance-at-common-place (type)
   (let* ((instance (assert-tablesetting-object type))
-         (f (format t "1 ~a~%" instance))
          (common-location-types (common-storage-location instance))
-         (f (format t "2 ~a~%" common-location-types))
          (random-location-type (elt common-location-types
                                     (random (length common-location-types))))
-         (f (format t "3 ~a~%" random-location-type))
          (locations (storage-locations random-location-type))
-         (f (format t "4 ~a~%" locations))
          (random-location (elt locations (random (length locations))))
-         (f (format t "5 ~a~%" random-location))
-         (pose (reference random-location)))
-    (spawn-instance instance pose)))
+         (pose (reference random-location))
+         (pose-elevated (tf:make-pose-stamped
+                         (tf:frame-id pose)
+                         (tf:stamp pose)
+                         (tf:make-3d-vector (tf:x (tf:origin pose))
+                                            (tf:y (tf:origin pose))
+                                            (+ (tf:z (tf:origin pose)) 0.1))
+                         (tf:orientation pose))))
+    (spawn-instance instance pose-elevated)))
 
 (defun spawn-instance (instance pose)
   (let* ((urdf (object-urdf-path instance)))
