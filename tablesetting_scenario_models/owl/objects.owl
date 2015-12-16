@@ -93,14 +93,14 @@
       <rdfs:subClassOf>
         <owl:Restriction>
           <owl:onProperty rdf:resource="&knowrob;widthOfObject"/>
-          <owl:hasValue rdf:datatype="&xsd;double">0.16</owl:hasValue>
+          <owl:hasValue rdf:datatype="&xsd;double">0.10</owl:hasValue>
         </owl:Restriction>
       </rdfs:subClassOf>
       
       <rdfs:subClassOf>
         <owl:Restriction>
           <owl:onProperty rdf:resource="&knowrob;depthOfObject"/>
-          <owl:hasValue rdf:datatype="&xsd;double">0.16</owl:hasValue>
+          <owl:hasValue rdf:datatype="&xsd;double">0.10</owl:hasValue>
         </owl:Restriction>
       </rdfs:subClassOf>
       
@@ -113,17 +113,63 @@
       
       <rdfs:subClassOf>
         <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;primitiveShape"/>
+          <owl:hasValue rdf:datatype="&xsd;string">cylinder</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
           <owl:onProperty rdf:resource="&knowrob;commonStorageLocation"/>
           <owl:hasValue rdf:datatype="&xsd;string">counter</owl:hasValue>
         </owl:Restriction>
       </rdfs:subClassOf>
+    </owl:Class>
+    
+    <owl:Class rdf:about="&knowrob;Cup">
+      <rdfs:subClassOf rdf:resource="&knowrob;TablesettingObject"/>
       
-      <!--rdfs:subClassOf>
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;urdf"/>
+          <owl:hasValue rdf:datatype="&xsd;string">package://tablesetting_scenario_models/models/cup/cup.urdf</owl:hasValue>
+	</owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;widthOfObject"/>
+          <owl:hasValue rdf:datatype="&xsd;double">0.05</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;depthOfObject"/>
+          <owl:hasValue rdf:datatype="&xsd;double">0.05</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;heightOfObject"/>
+          <owl:hasValue rdf:datatype="&xsd;double">0.10</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;primitiveShape"/>
+          <owl:hasValue rdf:datatype="&xsd;string">cylinder</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
         <owl:Restriction>
           <owl:onProperty rdf:resource="&knowrob;commonStorageLocation"/>
-          <owl:hasValue rdf:datatype="&xsd;string">drawer</owl:hasValue>
+          <owl:hasValue rdf:datatype="&xsd;string">counter</owl:hasValue>
         </owl:Restriction>
-      </rdfs:subClassOf-->
+      </rdfs:subClassOf>
     </owl:Class>
     
 </rdf:RDF>

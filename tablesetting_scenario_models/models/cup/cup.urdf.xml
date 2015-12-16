@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<robot name="cup"
+       xmlns:xacro="http://www.ros.org/wiki/xacro">
+  
+  <xacro:include filename="$(find tablesetting_scenario_models)/defs/utils.xml"/>
+  
+  <cylinderlink name="link" height="0.1" radius="0.05" mass="0.2" />
+  
+</robot>
