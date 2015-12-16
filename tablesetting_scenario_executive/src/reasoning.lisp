@@ -124,15 +124,18 @@
                                             (tf:y (tf:origin pose))
                                             (+ (tf:z (tf:origin pose)) 0.1))
                          (tf:orientation pose))))
-    (spawn-instance instance pose-elevated)))
+    (set-object-pose instance pose-elevated)
+    (spawn-instance instance)))
 
-(defun spawn-instance (instance pose)
-  (let* ((urdf (object-urdf-path instance)))
+(defun spawn-instance (instance)
+  (let* ((urdf (object-urdf-path instance))
+         (pose (get-object-pose instance)))
     (cram-gazebo-utilities:spawn-gazebo-model instance pose urdf)))
 
 (defun spawn-new-instance (type pose)
   (let* ((instance (assert-tablesetting-object type)))
-    (spawn-instance instance pose)))
+    (set-object-pose instance pose)
+    (spawn-instance instance)))
 
 (defun set-object-pose (object pose)
   (let* ((matrix (cl-transforms:pose->matrix pose))
