@@ -134,6 +134,31 @@
   (let* ((instance (assert-tablesetting-object type)))
     (spawn-instance instance pose)))
 
+(defun set-object-pose (object pose)
+  (let* ((matrix (cl-transforms:pose->matrix pose))
+         (m-sequence (loop for i from 0 below 4
+                           append
+                           (loop for j from 0 below 4
+                                 collect (aref matrix i j)))))
+    (json-prolog:prolog `("assert_object_pose"
+                          ,(add-prolog-namespace object)
+                          ,@m-sequence))))
+
+(defun get-object-pose (object)
+  (with-vars-bound (?pose)
+      (lazy-car (json-prolog:prolog `("get_object_pose"
+                                      ,(add-prolog-namespace object) ?pose)))
+    (tf:pose->pose-stamped
+     "map" 0.0
+     (tf:transform->pose
+      (tf:matrix->transform
+       (make-array
+        `(4 4)
+        :initial-contents
+        (loop for i from 0 below 4
+              collect
+              (subseq ?pose (* i 4) (+ (* i 4) 4)))))))))
+
 (defun get-shopping-items ()
   "Returns all shopping items known in the current semantic environment."
   (with-prolog-vars-bound (?item)

@@ -37,7 +37,11 @@
       semantic_reference/2,
       tablesetting_object/1,
       assert_tablesetting_object/2,
+      get_object_pose/2,
+      assert_object_pose/17,
+      rotation_matrix/2,
       object_urdf_path/2,
+      assert_rotation_matrix_entries/2,
       seat/2,
       seat_area/2,
       area_location/2,
@@ -61,7 +65,11 @@
     storage_location(r, r),
     semantic_reference(r, r),
     assert_tablesetting_object(r, r),
+    assert_object_pose(r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r),
+    get_object_pose(r, r),
+    rotation_matrix(r, r),
     tablesetting_object(r),
+    assert_rotation_matrix_entries(r, r),
     seat(r, r),
     seat_area(r, r),
     area_location(r, r),
@@ -114,6 +122,64 @@ tablesetting_object(Object) :-
 %% assert_tablesetting_object(?Instance, ?Type) is nondet.
 assert_tablesetting_object(Instance, Type) :-
     rdf_instance_from_class(Type, Instance).
+
+
+%% assert_object_pose(?Instance, ?Pose) is nondet.
+assert_object_pose(Instance, M00, M01, M02, M03, M10, M11, M12, M13, M20, M21, M22, M23, M30, M31, M32, M33) :-
+    tablesetting_object(Instance),
+    rotation_matrix(Instance, RotMat),
+    assert_rotation_matrix_entries(RotMat, [M00, M01, M02, M03, M10, M11, M12, M13, M20, M21, M22, M23, M30, M31, M32, M33]).
+
+
+get_object_pose(Instance, [M00, M01, M02, M03, M10, M11, M12, M13, M20, M21, M22, M23, M30, M31, M32, M33]) :-
+    tablesetting_object(Instance),
+    rotation_matrix(Instance, RotMat),
+    rdf_has(RotMat, knowrob:'m00', literal(type(xsd:float, M00))),
+    rdf_has(RotMat, knowrob:'m01', literal(type(xsd:float, M01))),
+    rdf_has(RotMat, knowrob:'m02', literal(type(xsd:float, M02))),
+    rdf_has(RotMat, knowrob:'m03', literal(type(xsd:float, M03))),
+    rdf_has(RotMat, knowrob:'m10', literal(type(xsd:float, M10))),
+    rdf_has(RotMat, knowrob:'m11', literal(type(xsd:float, M11))),
+    rdf_has(RotMat, knowrob:'m12', literal(type(xsd:float, M12))),
+    rdf_has(RotMat, knowrob:'m13', literal(type(xsd:float, M13))),
+    rdf_has(RotMat, knowrob:'m20', literal(type(xsd:float, M20))),
+    rdf_has(RotMat, knowrob:'m21', literal(type(xsd:float, M21))),
+    rdf_has(RotMat, knowrob:'m22', literal(type(xsd:float, M22))),
+    rdf_has(RotMat, knowrob:'m23', literal(type(xsd:float, M23))),
+    rdf_has(RotMat, knowrob:'m30', literal(type(xsd:float, M30))),
+    rdf_has(RotMat, knowrob:'m31', literal(type(xsd:float, M31))),
+    rdf_has(RotMat, knowrob:'m32', literal(type(xsd:float, M32))),
+    rdf_has(RotMat, knowrob:'m33', literal(type(xsd:float, M33))).
+
+
+rotation_matrix(Instance, RotMat) :-
+    tablesetting_object(Instance),
+    rdf_has(Instance, knowrob:'eventOccursAt', RotMat),!.
+
+
+rotation_matrix(Instance, RotMat) :- 
+    tablesetting_object(Instance),
+    rdf_instance_from_class(knowrob:'RotationMatrix3D', RotMat),
+    rdf_assert(Instance, knowrob:'eventOccursAt', RotMat).
+
+
+assert_rotation_matrix_entries(RotMat, [M00, M01, M02, M03, M10, M11, M12, M13, M20, M21, M22, M23, M30, M31, M32, M33]) :-
+    rdf_assert(RotMat, knowrob:'m00', literal(type(xsd:float, M00))),
+    rdf_assert(RotMat, knowrob:'m01', literal(type(xsd:float, M01))),
+    rdf_assert(RotMat, knowrob:'m02', literal(type(xsd:float, M02))),
+    rdf_assert(RotMat, knowrob:'m03', literal(type(xsd:float, M03))),
+    rdf_assert(RotMat, knowrob:'m10', literal(type(xsd:float, M10))),
+    rdf_assert(RotMat, knowrob:'m11', literal(type(xsd:float, M11))),
+    rdf_assert(RotMat, knowrob:'m12', literal(type(xsd:float, M12))),
+    rdf_assert(RotMat, knowrob:'m13', literal(type(xsd:float, M13))),
+    rdf_assert(RotMat, knowrob:'m20', literal(type(xsd:float, M20))),
+    rdf_assert(RotMat, knowrob:'m21', literal(type(xsd:float, M21))),
+    rdf_assert(RotMat, knowrob:'m22', literal(type(xsd:float, M22))),
+    rdf_assert(RotMat, knowrob:'m23', literal(type(xsd:float, M23))),
+    rdf_assert(RotMat, knowrob:'m30', literal(type(xsd:float, M30))),
+    rdf_assert(RotMat, knowrob:'m31', literal(type(xsd:float, M31))),
+    rdf_assert(RotMat, knowrob:'m32', literal(type(xsd:float, M32))),
+    rdf_assert(RotMat, knowrob:'m33', literal(type(xsd:float, M33))).
 
 
 %% semantic_reference(?Location, ?Reference)
