@@ -109,6 +109,10 @@
       `("common_storage_location" ,(add-prolog-namespace object) ?location)
     (json-symbol->string ?location)))
 
+(defun get-free-pose-at-location (location)
+  ;; TODO: Correctly find the free pose here.
+  (reference location))
+
 (defun spawn-new-instance-at-common-place (type)
   (let* ((instance (assert-tablesetting-object type))
          (common-location-types (common-storage-location instance))
@@ -116,16 +120,18 @@
                                     (random (length common-location-types))))
          (locations (storage-locations random-location-type))
          (random-location (elt locations (random (length locations))))
-         (pose (reference random-location))
-         (pose-elevated (tf:make-pose-stamped
-                         (tf:frame-id pose)
-                         (tf:stamp pose)
-                         (tf:make-3d-vector (tf:x (tf:origin pose))
-                                            (tf:y (tf:origin pose))
-                                            (+ (tf:z (tf:origin pose)) 0.1))
-                         (tf:orientation pose))))
-    (set-object-pose instance pose-elevated)
-    (spawn-instance instance)))
+         (pose (get-free-pose-at-location random-location)))
+    (cond (pose
+           (let ((pose-elevated (tf:make-pose-stamped
+                                 (tf:frame-id pose)
+                                 (tf:stamp pose)
+                                 (tf:make-3d-vector (tf:x (tf:origin pose))
+                                                    (tf:y (tf:origin pose))
+                                                    (+ (tf:z (tf:origin pose)) 0.1))
+                                 (tf:orientation pose))))
+             (set-object-pose instance pose-elevated)
+             (spawn-instance instance)))
+          (t (format t "Failed to spawn object, as no free space was found.")))))
 
 (defun spawn-instance (instance)
   (let* ((urdf (object-urdf-path instance))
@@ -135,7 +141,7 @@
 (defun spawn-new-instance (type pose)
   (let* ((instance (assert-tablesetting-object type)))
     (set-object-pose instance pose)
-    (spawn-instance instance)))
+    (spawn-instance instanceo)))
 
 (defun set-object-pose (object pose)
   (let* ((matrix (cl-transforms:pose->matrix pose))
