@@ -163,7 +163,7 @@
      (or (desig-prop ?object (desig-props:type ?type))
          (infer-object-property ?object desig-props:type ?type)))
     (object-handle ?type ?handle))
-  
+
   (<- (infer-object-property ?object desig-props::carry-handles ?handles)
     (crs:once
      (or (desig-prop ?object (desig-props:type ?type))
@@ -189,7 +189,12 @@
     (crs:lisp-fun / ?pi 4 ?pi-quarter)
     (make-handle -0.06 1 ?three-pi-half push 0.0 ?pi-quarter 0 0.0 0.0 -0.01 ?handle))
   ;; Bowl handles end
-  
+
+  (<- (object-handle "Cup" ?handle)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (make-handle -0.02 1 ?pi-half push ?pi-half 0.0 0 0.0 0.0 0.05 ?handle))
+
   (<- (object-handle desig-props:pancakemix ?handle)
     (symbol-value pi ?pi)
     (crs:lisp-fun / ?pi 2 ?pi-half)
