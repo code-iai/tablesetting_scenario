@@ -680,7 +680,7 @@
                         :link2 "link"))
 
 (defun attach (object-name side)
-  (roslisp:call-service "/gazebo/detach"
+  (roslisp:call-service "/gazebo/attach"
                         'attache_msgs-srv:Attachment
                         :model1 "pr2"
                         :link1 (case side
