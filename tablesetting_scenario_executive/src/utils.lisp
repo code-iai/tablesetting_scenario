@@ -663,7 +663,14 @@
 
 (defmethod cram-language::on-grasp-object (object-name side)
   (roslisp:ros-info (tablesetting utils) "Grasp object ~a with side ~a." object-name side)
-  (roslisp:call-service "/gazebo/attach"
+  (attach object-name side))
+
+(defmethod cram-language::on-putdown-object (object-name side)
+  (roslisp:ros-info (tablesetting utils) "Put down object ~a with side ~a." object-name side)
+  (detach object-name side))
+
+(defun detach (object-name side)
+  (roslisp:call-service "/gazebo/detach"
                         'attache_msgs-srv:Attachment
                         :model1 "pr2"
                         :link1 (case side
@@ -672,8 +679,7 @@
                         :model2 object-name
                         :link2 "link"))
 
-(defmethod cram-language::on-putdown-object (object-name side)
-  (roslisp:ros-info (tablesetting utils) "Put down object ~a with side ~a." object-name side)
+(defun attach (object-name side)
   (roslisp:call-service "/gazebo/detach"
                         'attache_msgs-srv:Attachment
                         :model1 "pr2"
