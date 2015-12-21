@@ -650,41 +650,38 @@
              object))))
 
 (defmethod cram-language::on-handover-transition (side-old side-new object-name)
-  ;; (roslisp:ros-info (shopping utils) "Handover transition from side ~a to side ~a."
-  ;;                   side-old side-new)
-  ;; (roslisp:call-service "/gazebo/detach"
-  ;;                       'attache_msgs-srv:Attachment
-  ;;                       :model1 "pr2"
-  ;;                       :link1 (case side-old
-  ;;                                (:left "l_wrist_roll_link")
-  ;;                                (:right "r_wrist_roll_link"))
-  ;;                       :model2 object-name
-  ;;                       :link2 "link")
-  )
+  (roslisp:ros-info (tablesetting utils) "Handover transition from side ~a to side ~a."
+                    side-old side-new)
+  (roslisp:call-service "/gazebo/detach"
+                        'attache_msgs-srv:Attachment
+                        :model1 "pr2"
+                        :link1 (case side-old
+                                 (:left "l_wrist_roll_link")
+                                 (:right "r_wrist_roll_link"))
+                        :model2 object-name
+                        :link2 "link"))
 
 (defmethod cram-language::on-grasp-object (object-name side)
-  ;; (roslisp:ros-info (shopping utils) "Grasp object ~a with side ~a." object-name side)
-  ;; (roslisp:call-service "/gazebo/attach"
-  ;;                       'attache_msgs-srv:Attachment
-  ;;                       :model1 "pr2"
-  ;;                       :link1 (case side
-  ;;                                (:left "l_wrist_roll_link")
-  ;;                                (:right "r_wrist_roll_link"))
-  ;;                       :model2 object-name
-  ;;                       :link2 "link")
-  )
+  (roslisp:ros-info (tablesetting utils) "Grasp object ~a with side ~a." object-name side)
+  (roslisp:call-service "/gazebo/attach"
+                        'attache_msgs-srv:Attachment
+                        :model1 "pr2"
+                        :link1 (case side
+                                 (:left "l_wrist_roll_link")
+                                 (:right "r_wrist_roll_link"))
+                        :model2 object-name
+                        :link2 "link"))
 
 (defmethod cram-language::on-putdown-object (object-name side)
-  ;; (roslisp:ros-info (shopping utils) "Put down object ~a with side ~a." object-name side)
-  ;; (roslisp:call-service "/gazebo/detach"
-  ;;                       'attache_msgs-srv:Attachment
-  ;;                       :model1 "pr2"
-  ;;                       :link1 (case side
-  ;;                                (:left "l_wrist_roll_link")
-  ;;                                (:right "r_wrist_roll_link"))
-  ;;                       :model2 object-name
-  ;;                       :link2 "link")
-  )
+  (roslisp:ros-info (tablesetting utils) "Put down object ~a with side ~a." object-name side)
+  (roslisp:call-service "/gazebo/detach"
+                        'attache_msgs-srv:Attachment
+                        :model1 "pr2"
+                        :link1 (case side
+                                 (:left "l_wrist_roll_link")
+                                 (:right "r_wrist_roll_link"))
+                        :model2 object-name
+                        :link2 "link"))
 
 (defun position-free? (rack-level x y &key (threshold 0.15))
   (let* ((known-objects (get-shopping-items))
