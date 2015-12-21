@@ -222,8 +222,45 @@
       ;; TODO(winkler): Close cupboard
       )))
 
-(def-cram-function place-object (object location)
+(def-cram-function ts-place-object (object location)
   (approach (description location))
   (format t "Placing ~a at seat ~a~%"
           (desig-prop-value object 'type)
           (desig-prop-value location 'seat)))
+
+(def-top-level-cram-function prepare-scene (&key (object-type "Cup"))
+  (prepare-settings)
+  (move-arms-away)
+  (move-torso)
+  (spawn-new-instance-at-common-place object-type))
+
+(def-top-level-cram-function tablesetting-test ()
+  (with-simulation-process-modules
+    (prepare-settings)
+    (move-torso)
+    (move-arms-away)
+    (with-designators ((cup (object `((desig-props:type "Cup")))))
+      (cpl:with-failure-handling
+          ((cram-plan-failures:location-not-reached-failure (f)
+             (declare (ignore f))
+             (cpl:retry)))
+        (perceive-a cup))
+      (cpl:with-failure-handling
+          ((cram-plan-failures:location-not-reached-failure (f)
+             (declare (ignore f))
+             (cpl:retry)))
+        (pick-object cup))
+      (with-designators ((place (location `((desig-props:on Cupboard)
+                                            (desig-props:name "kitchen_island")))))
+        (cpl:with-failure-handling
+            ((cram-plan-failures:location-not-reached-failure (f)
+               (declare (ignore f))
+               (cpl:retry)))
+          (place-object cup place))))))
+
+(defun remove-object (object side)
+  (moveit:detach-collision-object-from-link object
+   (case side
+     (:left "l_wrist_roll_link")
+     (:right "r_wrist_roll_link")))
+  (moveit:remove-collision-object object))
