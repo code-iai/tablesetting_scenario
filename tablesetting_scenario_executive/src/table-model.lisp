@@ -141,76 +141,105 @@
    :rotation (tf:euler->quaternion :ax (/ pi 2))
    :scale 0.03))
 
-(defun display-table-scene (&key highlight)
-  (let* ((table-width 1.5)
-         (table-depth 2.0)
-         (table-height 0.8)
-         (table-pose (tf:make-pose
-                      (tf:make-3d-vector 0 0 (/ table-height 2))
-                      (tf:euler->quaternion)))
-         (seat-width 0.6)
-         (seat-depth 0.4))
+(defun table-pose ()
+  (let* ((sem-obj (first
+                   (sem-map-utils:designator->semantic-map-objects
+                    (make-designator 'location `((desig-props:name "kitchen_island"))))))
+         (table-pose (sem-map-utils:pose sem-obj)))
+    table-pose))
+
+(defun table-dimensions ()
+  (let* ((sem-obj (first
+                   (sem-map-utils:designator->semantic-map-objects
+                    (make-designator 'location `((desig-props:name "kitchen_island"))))))
+         (dimensions (sem-map-utils:dimensions sem-obj)))
+    dimensions))
+
+(defun seat-dimensions ()
+  (tf:make-3d-vector 0.6 0.4 0.0))
+
+(defun table-relative-pose (relative-pose table-pose)
+  (cl-transforms:transform-pose
+   (tf:pose->transform table-pose)
+   relative-pose))
+
+(defun seat-pose (side index max seat-dimensions table-dimensions table-pose)
+  (let ((rotation (tf:euler->quaternion
+                   :az (ecase side
+                         (:south 0.0)
+                         (:north pi)
+                         (:west (/ pi -2))
+                         (:east (/ pi 2)))))
+        (x (ecase side
+             ;; Kind of hackish, but it works.
+             (:south 0);;(- (* (/ index max)
+             ;;    table-width)
+             ;; (/ table-width (* 2 max))))
+             (:north 0);;(- (* (/ index max)
+             ;;    table-width)
+             ;; (/ table-width (* max 2))))
+             (:west (- (/ (tf:y seat-dimensions) 2)
+                       (/ (tf:x table-dimensions) 2)
+                       -0.02))
+             (:east (- (/ (tf:x table-dimensions) 2)
+                       (/ (tf:y seat-dimensions) 2)
+                       0.02))))
+        (y (ecase side
+             (:south (- (/ (tf:y seat-dimensions) 2)
+                        (/ (tf:y table-dimensions) 2)
+                        -0.02))
+             (:north (- (/ (tf:y table-dimensions) 2)
+                        (/ (tf:y seat-dimensions) 2)
+                        0.02))
+             (:west (- (* (/ index max)
+                          (tf:y table-dimensions))
+                       (/ (tf:y table-dimensions) (* max 2))))
+             (:east (- (* (/ index max)
+                          (tf:y table-dimensions))
+                       (/ (tf:y table-dimensions) (* max 2))))))
+        (z (+ 0.005
+              (/ (tf:x table-dimensions) 2))))
+    (table-relative-pose (tf:make-pose
+                          (tf:make-3d-vector x y z)
+                          rotation)
+                         table-pose)))
+                 
+(defun display-table-scene (&key highlight
+                              (size (tf:make-3d-vector 1.0 2.0 0.8))
+                              (table-pose (tf:make-pose
+                                           (tf:make-3d-vector 0 0 (/ (tf:z size) 2))
+                                           (tf:euler->quaternion)))
+                              (seat-dimensions (seat-dimensions)))
+  (let* ((table-width (tf:x size))
+         (table-depth (tf:y size))
+         (table-height (tf:z size))
+         (seat-width (tf:x seat-dimensions))
+         (seat-depth (tf:y seat-dimensions)))
     (display-candlestick "candle-1" 0.1 0.0 table-height)
     (display-candlestick "candle-2" 0.0 0.1 table-height)
     (display-candlestick "candle-3" -0.1 -0.1 table-height)
-    (labels ((table-relative-pose (relative-pose)
-               (cl-transforms:transform-pose
-                (tf:pose->transform table-pose)
-                relative-pose))
-             (seat-pose (side index max)
-               (let ((rotation (tf:euler->quaternion
-                                :az (ecase side
-                                      (:south 0.0)
-                                      (:north pi)
-                                      (:west (/ pi -2))
-                                      (:east (/ pi 2)))))
-                     (x (ecase side
-                          ;; Kind of hackish, but it works.
-                          (:south 0);;(- (* (/ index max)
-                                    ;;    table-width)
-                                    ;; (/ table-width (* 2 max))))
-                          (:north 0);;(- (* (/ index max)
-                                    ;;    table-width)
-                                    ;; (/ table-width (* max 2))))
-                          (:west (- (/ seat-depth 2)
-                                     (/ table-width 2)
-                                     -0.02))
-                          (:east (- (/ table-width 2)
-                                     (/ seat-depth 2)
-                                     0.02))))
-                     (y (ecase side
-                          (:south (- (/ seat-depth 2)
-                                     (/ table-depth 2)
-                                     -0.02))
-                          (:north (- (/ table-depth 2)
-                                     (/ seat-depth 2)
-                                     0.02))
-                          (:west (- (* (/ index max)
-                                       table-depth)
-                                    (/ table-depth (* max 2))))
-                          (:east (- (* (/ index max)
-                                       table-depth)
-                                    (/ table-depth (* max 2))))))
-                     (z (+ 0.005
-                           (/ table-height 2))))
-                 (table-relative-pose
-                  (tf:make-pose
-                   (tf:make-3d-vector x y z)
-                   rotation)))))
-      (display-table table-pose table-width table-depth)
-      (let ((table-definition (table-definition)))
-        (dolist (def table-definition)
-          (destructuring-bind (side max-seats) def
-            (loop for seat from 0 below max-seats
-                  as id = (table-seat-id def seat)
-                  as highlight-current = (loop for h in highlight
-                                               when (string=
-                                                     (first h) id)
-                                                 collect (second h))
-                  do (display-seat
-                      id (seat-pose side seat max-seats)
-                      seat-width seat-depth
-                      :highlight highlight-current))))))))
+    (display-table table-pose table-width table-depth)
+    (let ((table-definition (table-definition)))
+      (dolist (def table-definition)
+        (destructuring-bind (side max-seats) def
+          (loop for seat from 0 below max-seats
+                as id = (table-seat-id def seat)
+                as highlight-current = (loop for h in highlight
+                                             when (string=
+                                                   (first h) id)
+                                               collect (second h))
+                do (display-seat
+                    id (seat-pose side seat max-seats
+                                  (tf:make-3d-vector seat-width seat-depth 0.0)
+                                  size table-pose)
+                    seat-width seat-depth
+                    :highlight highlight-current)))))))
+
+(defun seat-location (side index max)
+  (make-designator
+   'location `((desig-props::seat-side ,side)
+               (desig-props::seat-index ,index)
+               (desig-props::seats-max ,max))))
 
 (defun table-seat-id (def index)
   (destructuring-bind (side max-seats) def
@@ -223,7 +252,7 @@
      (write-to-string index))))
 
 (defun table-definition ()
-  `((:east 2)))
+  `((:west 2)))
 
 (defmethod get-sem-map-obj (name)
   (let* ((parts (slot-value (sem-map-utils:get-semantic-map) 'sem-map-utils::parts))
@@ -244,41 +273,13 @@
    "table"
    pose `(,width 0.8 ,depth) '(1.0 1.0 1.0 0.5)))
 
-(defun display-seat (id pose width depth &key highlight)
+(defun dataset (identifier width depth)
   (let ((back-fraction 0.25)
         (side-fraction 0.25)
         (data (make-hash-table :test 'equal)))
-    (labels ((seat-relative-pose (relative-pose)
-               (cl-transforms:transform-pose
-                (tf:pose->transform pose)
-                relative-pose))
-             (seat-relative-id (relative-id)
-               (concatenate 'string id "-" relative-id))
-             (add-dataset (id coordinates dimensions color)
+    (labels ((add-dataset (id coordinates dimensions color)
                (setf (gethash id data)
-                     `(,coordinates ,dimensions ,color)))
-             (display-dataset (id)
-               (let* ((dataset (gethash id data))
-                      (coordinates (first dataset))
-                      (dimensions (second dataset))
-                      (color (third dataset)))
-                 (display-box
-                  (seat-relative-id id)
-                  (seat-relative-pose
-                   (tf:make-pose
-                    (tf:make-3d-vector
-                     (first coordinates)
-                     (second coordinates)
-                     0.0)
-                    (tf:euler->quaternion)))
-                  `(,(first dimensions) 0.005 ,(second dimensions))
-                  (cond ((find id highlight :test #'string=)
-                         (append color `(1.0)))
-                        (t (let ((dim-factor 0.4))
-                             `(,(* dim-factor (first color))
-                               ,(* dim-factor (second color))
-                               ,(* dim-factor (third color))
-                               1.0))))))))
+                     `(,coordinates ,dimensions ,color))))
       (add-dataset
        "back"
        `(0 ,(* depth (* back-fraction 1.5)))
@@ -318,10 +319,37 @@
          ,(* depth (* back-fraction 1.5)))
        `(,(* side-fraction width)
          ,(* depth back-fraction))
-       `(0.0 1.0 0.0))
-      (display-dataset "back")
-      (display-dataset "center")
-      (display-dataset "right")
-      (display-dataset "left")
-      (display-dataset "left-back")
-      (display-dataset "right-back"))))
+       `(0.0 1.0 0.0)))
+    (gethash identifier data)))
+
+(defun display-seat (id pose width depth &key highlight)
+  (labels ((seat-relative-pose (relative-pose)
+             (cl-transforms:transform-pose
+              (tf:pose->transform pose)
+              relative-pose))
+           (seat-relative-id (relative-id)
+             (concatenate 'string id "-" relative-id))
+           (display-dataset (id)
+             (let* ((dataset (dataset id width depth))
+                    (coordinates (first dataset))
+                    (dimensions (second dataset))
+                    (color (third dataset)))
+               (display-box
+                (seat-relative-id id)
+                (seat-relative-pose
+                 (tf:make-pose
+                  (tf:make-3d-vector
+                   (first coordinates)
+                   (second coordinates)
+                   0.0)
+                  (tf:euler->quaternion)))
+                `(,(first dimensions) 0.005 ,(second dimensions))
+                (cond ((find id highlight :test #'string=)
+                       (append color `(1.0)))
+                      (t (let ((dim-factor 0.4))
+                           `(,(* dim-factor (first color))
+                             ,(* dim-factor (second color))
+                             ,(* dim-factor (third color))
+                             1.0))))))))
+    (loop for id in `("back" "center" "right" "left" "left-back" "right-back")
+          do (display-dataset id))))

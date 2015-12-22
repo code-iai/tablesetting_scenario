@@ -54,6 +54,10 @@
     ((name (common-lisp:eql 'scenario-in-front-of-seat-distribution)))
   101)
 
+(defmethod costmap-generator-name->score
+    ((name (common-lisp:eql 'seat-area-distribution)))
+  102)
+
 (defun object-color (colors color)
   (let ((color-pair (find color colors :test (lambda (x y) (eql x (car y))))))
     (if color-pair
@@ -92,7 +96,32 @@
                                `((desig-props:grasp-type ,grasp-type)))))
         collect handle-object))
 
+(defun make-seat-area-distribution-cost-function (side index max)
+  (let ((table-pose (table-pose))
+        (table-dimensions (table-dimensions))
+        (seat-dimensions (seat-dimensions)))
+    (lambda (x y)
+      (let ((pose (seat-pose side index max
+                             seat-dimensions table-dimensions table-pose)))
+        (if (and (>= x (- (tf:x (tf:origin pose)) (/ (tf:y seat-dimensions) 2)))
+                 (<= x (+ (tf:x (tf:origin pose)) (/ (tf:y seat-dimensions) 2)))
+                 (>= y (- (tf:y (tf:origin pose)) (/ (tf:x seat-dimensions) 2)))
+                 (<= y (+ (tf:y (tf:origin pose)) (/ (tf:x seat-dimensions) 2))))
+            1.0d0
+            0.0d0)))))
+
 (def-fact-group scenario-costmap-area-restriction (desig-costmap)
+
+  (<- (desig-costmap ?desig ?cm)
+    (desig-prop ?desig (desig-props::seat-side ?side))
+    (desig-prop ?desig (desig-props::seat-index ?index))
+    (desig-prop ?desig (desig-props::seats-max ?max))
+    (costmap ?cm)
+    (costmap-add-function
+     seat-area-distribution
+     (make-seat-area-distribution-cost-function
+      ?side ?index ?max)
+     ?cm))
   
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (desig-props:in-front-of desig-props:seat))
