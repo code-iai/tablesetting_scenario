@@ -322,6 +322,9 @@
        `(0.0 1.0 0.0)))
     (gethash identifier data)))
 
+(defun relative-seat-pose (identifier width depth pose)
+  )
+
 (defun display-seat (id pose width depth &key highlight)
   (labels ((seat-relative-pose (relative-pose)
              (cl-transforms:transform-pose
