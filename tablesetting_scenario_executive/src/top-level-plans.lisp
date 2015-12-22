@@ -234,33 +234,40 @@
   (move-torso)
   (spawn-new-instance-at-common-place object-type))
 
-(def-top-level-cram-function tablesetting-test ()
+(def-top-level-cram-function tablesetting-test (&key (runs 1))
   (with-simulation-process-modules
     (prepare-settings)
     (move-torso)
     (move-arms-away)
-    (with-designators ((cup (object `((desig-props:type "Cup")))))
-      (cpl:with-failure-handling
-          ((cram-plan-failures:location-not-reached-failure (f)
-             (declare (ignore f))
-             (cpl:retry)))
-        (perceive-a cup))
-      (cpl:with-failure-handling
-          ((cram-plan-failures:location-not-reached-failure (f)
-             (declare (ignore f))
-             (cpl:retry)))
-        (pick-object cup))
-      (with-designators ((place (location `((desig-props:on Cupboard)
+    (loop for i from 0 below runs
+          do (with-designators ((cup (object `((desig-props:type "Cup")))))
+               (cpl:with-failure-handling
+                   ((cram-plan-failures:location-not-reached-failure (f)
+                      (declare (ignore f))
+                      (cpl:retry)))
+                 (perceive-a cup))
+               (cpl:with-failure-handling
+                   ((cram-plan-failures:location-not-reached-failure (f)
+                      (declare (ignore f))
+                      (cpl:retry)))
+                 (pick-object cup))
+               (with-designators ((place (location
+                                          `((desig-props:on Cupboard)
                                             (desig-props:name "kitchen_island")))))
-        (cpl:with-failure-handling
-            ((cram-plan-failures:location-not-reached-failure (f)
-               (declare (ignore f))
-               (cpl:retry)))
-          (place-object cup place))))))
+                 (cpl:with-failure-handling
+                     ((cram-plan-failures:location-not-reached-failure (f)
+                        (declare (ignore f))
+                        (cpl:retry)))
+                   (place-object cup place)))))))
+
+(defun spawn-object (&key (object "Cup"))
+  (spawn-new-instance-at-common-place object))
 
 (defun remove-object (object side)
   (moveit:detach-collision-object-from-link object
    (case side
      (:left "l_wrist_roll_link")
      (:right "r_wrist_roll_link")))
-  (moveit:remove-collision-object object))
+  (moveit:remove-collision-object object)
+  (detach object side)
+  (cram-gazebo-utilities::delete-gazebo-model object))
