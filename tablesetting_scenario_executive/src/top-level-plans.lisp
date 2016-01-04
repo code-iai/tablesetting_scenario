@@ -254,11 +254,15 @@
                (with-designators ((place (location
                                           `((desig-props:on Cupboard)
                                             (desig-props:name "kitchen_island")))))
-                 (cpl:with-failure-handling
-                     ((cram-plan-failures:location-not-reached-failure (f)
-                        (declare (ignore f))
-                        (cpl:retry)))
-                   (place-object cup place)))))))
+                 (let ((place-seat
+                         (combine-locations
+                          place
+                          (seat-location :west 1 2 "left"))))
+                   (cpl:with-failure-handling
+                       ((cram-plan-failures:location-not-reached-failure (f)
+                          (declare (ignore f))
+                          (cpl:retry)))
+                     (place-object cup place-seat))))))))
 
 (defun spawn-object (&key (object "Cup"))
   (spawn-new-instance-at-common-place object))
