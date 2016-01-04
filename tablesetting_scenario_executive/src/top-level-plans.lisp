@@ -232,7 +232,8 @@
   (prepare-settings)
   (move-arms-away)
   (move-torso)
-  (spawn-new-instance-at-common-place object-type))
+  ;(spawn-new-instance-at-common-place object-type)
+  )
 
 (def-top-level-cram-function tablesetting-test (&key (runs 1))
   (with-simulation-process-modules
@@ -263,6 +264,53 @@
                           (declare (ignore f))
                           (cpl:retry)))
                      (place-object cup place-seat))))))))
+
+(defun remove-index (sequence index)
+  (cond ((= index 0)
+         (subseq sequence 1))
+        ((= index (1- (length sequence)))
+         (subseq sequence 0 (1- (length sequence))))
+        (t (concatenate (type-of sequence)
+                        (subseq sequence 0 index)
+                        (subseq sequence (1+ index))))))
+
+(def-top-level-cram-function tablesetting-test-seq ()
+  (let ((table (make-designator 'location
+                                `((desig-props:on Cupboard)
+                                  (desig-props:name "kitchen_island"))))
+        (source-hint "kitchen_sink_block")
+        (objects `(("Cup" ,(seat-location :west 1 2 "left"))
+                   ("Cup" ,(seat-location :west 1 2 "right")))))
+    (with-simulation-process-modules
+      (prepare-settings)
+      (move-torso)
+      (move-arms-away)
+      (loop while objects
+            do (let* ((random-index (random (length objects)))
+                      (random-object (elt objects random-index)))
+                 (destructuring-bind (object-type destination-place) random-object
+                   (spawn-new-instance-at-common-place object-type :hint source-hint)
+                   (with-designators ((loc (location `((desig-props::on Cupboard)
+                                                       (desig-props::name ,source-hint))))
+                                      (object (object `((desig-props:type ,object-type)
+                                                        (desig-props:at ,loc)))))
+                     (cpl:with-failure-handling
+                         ((cram-plan-failures:location-not-reached-failure (f)
+                            (declare (ignore f))
+                            (cpl:retry)))
+                       (perceive-a object))
+                     (cpl:with-failure-handling
+                         ((cram-plan-failures:location-not-reached-failure (f)
+                            (declare (ignore f))
+                            (cpl:retry)))
+                       (pick-object object))
+                     (let ((place (combine-locations table destination-place)))
+                       (cpl:with-failure-handling
+                           ((cram-plan-failures:location-not-reached-failure (f)
+                              (declare (ignore f))
+                              (cpl:retry)))
+                         (place-object object place)
+                         (setf objects (remove-index objects random-index)))))))))))
 
 (defun spawn-object (&key (object "Cup"))
   (spawn-new-instance-at-common-place object))
