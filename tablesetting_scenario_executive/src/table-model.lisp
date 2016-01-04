@@ -252,7 +252,7 @@
                                                    (first h) id)
                                                collect (second h))
                 do (display-seat
-                    id (seat-pose side seat max-seats
+                    id (seat-pose side seat max-seats nil
                                   (tf:make-3d-vector seat-width seat-depth 0.0)
                                   size table-pose)
                     seat-width seat-depth
@@ -388,3 +388,10 @@
                              1.0))))))))
     (loop for id in `("back" "center" "right" "left" "left-back" "right-back")
           do (display-dataset id))))
+
+(defun combine-locations (&rest locations)
+  (make-designator 'location
+                   (remove-duplicates
+                    (loop for location in locations
+                          append (description location))
+                    :test #'equal)))
