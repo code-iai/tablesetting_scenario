@@ -113,13 +113,19 @@
   ;; TODO: Correctly find the free pose here.
   (reference location))
 
-(defun spawn-new-instance-at-common-place (type)
+(defun spawn-new-instance-at-common-place (type &key hint)
   (let* ((instance (assert-tablesetting-object type))
          (common-location-types (common-storage-location instance))
          (random-location-type (elt common-location-types
                                     (random (length common-location-types))))
          (locations (storage-locations random-location-type))
-         (random-location (elt locations (random (length locations))))
+         (locations-filtered
+           (remove-if (lambda (location)
+                        (when hint
+                          (not (string= (desig-prop-value location 'desig-props::name)
+                                        hint))))
+                      locations))
+         (random-location (elt locations-filtered (random (length locations-filtered))))
          (pose (get-free-pose-at-location random-location)))
     (cond (pose
            (let ((pose-elevated (tf:make-pose-stamped
