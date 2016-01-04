@@ -163,7 +163,7 @@
    (tf:pose->transform table-pose)
    relative-pose))
 
-(defun seat-pose (side index max seat-dimensions table-dimensions table-pose)
+(defun seat-pose (side index max section seat-dimensions table-dimensions table-pose)
   (let ((rotation (tf:euler->quaternion
                    :az (ecase side
                          (:south 0.0)
@@ -198,12 +198,35 @@
                           (tf:y table-dimensions))
                        (/ (tf:y table-dimensions) (* max 2))))))
         (z (+ 0.005
-              (/ (tf:x table-dimensions) 2))))
-    (table-relative-pose (tf:make-pose
-                          (tf:make-3d-vector x y z)
-                          rotation)
-                         table-pose)))
-                 
+              (/ (tf:x table-dimensions) 2)))
+        (dataset
+          (when section
+            (dataset section (tf:x seat-dimensions) (tf:y seat-dimensions)))))
+    (cond (dataset
+           (destructuring-bind (pos dim col) dataset
+             (declare (ignore col))
+             (let ((rotated-pos (cl-transforms:transform-pose
+                                 (tf:make-transform
+                                  (tf:make-3d-vector (second pos) (first pos) 0)
+                                  (tf:euler->quaternion))
+                                 (tf:make-pose
+                                  (tf:make-identity-vector)
+                                  rotation))))
+               (let ((x (+ x (tf:x (tf:origin rotated-pos))))
+                     (y (- y (tf:y (tf:origin rotated-pos)))))
+                 (values (table-relative-pose (tf:make-pose
+                                               (tf:make-3d-vector x y z)
+                                               rotation)
+                                              table-pose)
+                         (tf:make-3d-vector (first dim) (second dim) 0))))))
+          (t
+           (values
+            (table-relative-pose (tf:make-pose
+                                  (tf:make-3d-vector x y z)
+                                  rotation)
+                                 table-pose)
+            seat-dimensions)))))
+
 (defun display-table-scene (&key highlight
                               (size (tf:make-3d-vector 1.0 2.0 0.8))
                               (table-pose (tf:make-pose
@@ -235,11 +258,13 @@
                     seat-width seat-depth
                     :highlight highlight-current)))))))
 
-(defun seat-location (side index max)
+(defun seat-location (side index max &optional section)
   (make-designator
-   'location `((desig-props::seat-side ,side)
-               (desig-props::seat-index ,index)
-               (desig-props::seats-max ,max))))
+   'location (append `((desig-props::seat-side ,side)
+                       (desig-props::seat-index ,index)
+                       (desig-props::seats-max ,max))
+                     (when section
+                       `((desig-props::seat-section ,section))))))
 
 (defun table-seat-id (def index)
   (destructuring-bind (side max-seats) def
@@ -280,6 +305,10 @@
     (labels ((add-dataset (id coordinates dimensions color)
                (setf (gethash id data)
                      `(,coordinates ,dimensions ,color))))
+      ;; Format:
+      ;;  0: Position (x, y)
+      ;;  1: Dimension (w, h)
+      ;;  2: Color (r, g, b)
       (add-dataset
        "back"
        `(0 ,(* depth (* back-fraction 1.5)))
@@ -323,7 +352,10 @@
     (gethash identifier data)))
 
 (defun relative-seat-pose (identifier width depth pose)
-  )
+  (let ((dataset (dataset identifier width depth)))
+    (cl-transforms:transform-pose
+     (tf:pose->transform pose)
+     relative-pose)))
 
 (defun display-seat (id pose width depth &key highlight)
   (labels ((seat-relative-pose (relative-pose)
