@@ -96,17 +96,18 @@
                                `((desig-props:grasp-type ,grasp-type)))))
         collect handle-object))
 
-(defun make-seat-area-distribution-cost-function (side index max)
+(defun make-seat-area-distribution-cost-function (side index max section)
   (let ((table-pose (table-pose))
         (table-dimensions (table-dimensions))
         (seat-dimensions (seat-dimensions)))
     (lambda (x y)
-      (let ((pose (seat-pose side index max
-                             seat-dimensions table-dimensions table-pose)))
-        (if (and (>= x (- (tf:x (tf:origin pose)) (/ (tf:y seat-dimensions) 2)))
-                 (<= x (+ (tf:x (tf:origin pose)) (/ (tf:y seat-dimensions) 2)))
-                 (>= y (- (tf:y (tf:origin pose)) (/ (tf:x seat-dimensions) 2)))
-                 (<= y (+ (tf:y (tf:origin pose)) (/ (tf:x seat-dimensions) 2))))
+      (multiple-value-bind (pose dimensions)
+          (seat-pose side index max section
+                     seat-dimensions table-dimensions table-pose)
+        (if (and (>= x (- (tf:x (tf:origin pose)) (/ (tf:y dimensions) 2)))
+                 (<= x (+ (tf:x (tf:origin pose)) (/ (tf:y dimensions) 2)))
+                 (>= y (- (tf:y (tf:origin pose)) (/ (tf:x dimensions) 2)))
+                 (<= y (+ (tf:y (tf:origin pose)) (/ (tf:x dimensions) 2))))
             1.0d0
             0.0d0)))))
 
@@ -116,11 +117,14 @@
     (desig-prop ?desig (desig-props::seat-side ?side))
     (desig-prop ?desig (desig-props::seat-index ?index))
     (desig-prop ?desig (desig-props::seats-max ?max))
+    (crs:once
+     (or (desig-prop ?desig (desig-props::seat-section ?section))
+         (equal ?section nil)))
     (costmap ?cm)
     (costmap-add-function
      seat-area-distribution
      (make-seat-area-distribution-cost-function
-      ?side ?index ?max)
+      ?side ?index ?max ?section)
      ?cm))
   
   (<- (desig-costmap ?desig ?cm)
