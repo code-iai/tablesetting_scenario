@@ -279,8 +279,10 @@
                                 `((desig-props:on Cupboard)
                                   (desig-props:name "kitchen_island"))))
         (source-hint "kitchen_sink_block")
-        (objects `(("Cup" ,(seat-location :west 1 2 "left"))
-                   ("Cup" ,(seat-location :west 1 2 "right")))))
+        (objects `(("Knife" ,(seat-location :west 1 2 "right"))
+                   ("Plate" ,(seat-location :west 1 2 "center"))
+                   ("Cup" ,(seat-location :west 1 2 "left-back"))
+                   )))
     (with-simulation-process-modules
       (prepare-settings)
       (move-torso)

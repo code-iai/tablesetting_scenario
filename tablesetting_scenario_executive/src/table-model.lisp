@@ -299,7 +299,7 @@
    pose `(,width 0.8 ,depth) '(1.0 1.0 1.0 0.5)))
 
 (defun dataset (identifier width depth)
-  (let ((back-fraction 0.25)
+  (let ((back-fraction 0.35)
         (side-fraction 0.25)
         (data (make-hash-table :test 'equal)))
     (labels ((add-dataset (id coordinates dimensions color)

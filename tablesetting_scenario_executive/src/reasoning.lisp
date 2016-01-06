@@ -138,10 +138,14 @@
              (set-object-pose instance pose-elevated)
              (spawn-instance instance)))
           (t (format t "Failed to spawn object, as no free space was found.")))
-    (make-designator 'object `((desig-props:type ,type)
-                               (desig-props:at
-                                ,(make-designator 'location
-                                                  `((desig-props:pose ,pose))))))))
+    (let ((dimensions (get-item-dimensions instance))
+          (shape (get-item-primitive-shape-symbol instance)))
+      (make-designator 'object `((desig-props:type ,type)
+                                 (desig-props:dimensions ,dimensions)
+                                 (desig-props:shape ,shape)
+                                 (desig-props:at
+                                  ,(make-designator 'location
+                                                    `((desig-props:pose ,pose)))))))))
 
 (defun spawn-instance (instance)
   (let* ((urdf (object-urdf-path instance))
@@ -151,7 +155,7 @@
 (defun spawn-new-instance (type pose)
   (let* ((instance (assert-tablesetting-object type)))
     (set-object-pose instance pose)
-    (spawn-instance instanceo)))
+    (spawn-instance instance)))
 
 (defun set-object-pose (object pose)
   (let* ((matrix (cl-transforms:pose->matrix pose))

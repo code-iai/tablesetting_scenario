@@ -28,7 +28,7 @@
 (in-package :tablesetting-scenario-executive)
 
 (defun make-scenario-area-restriction-cost-function ()
-  (let ((min-x -1.0)
+  (let ((min-x -1.5)
         (max-x 1.55)
         (min-y 0.2)
         (max-y 1.8))
@@ -222,12 +222,36 @@
     (crs:lisp-fun / ?pi 4 ?pi-quarter)
     (make-handle -0.06 1 ?three-pi-half push 0.0 ?pi-quarter 0 0.0 0.0 -0.01 ?handle))
   ;; Bowl handles end
-
+  
   (<- (object-handle "Cup" ?handle)
     (symbol-value pi ?pi)
     (crs:lisp-fun / ?pi 2 ?pi-half)
     (make-handle -0.02 1 ?pi-half push ?pi-half 0.0 0 0.0 0.0 0.05 ?handle))
 
+  (<- (object-handle "Cup" ?handle)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (crs:lisp-fun * ?pi-half 3)
+    (make-handle -0.02 1 ?three-pi-half push ?pi-half 0.0 0 0.0 0.0 0.05 ?handle))
+  
+  (<- (object-handle "Plate" ?handle)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (crs:lisp-fun * ?pi 0.6 ?skewed)
+    (make-handle 0.01 1 ?pi-half push 0.0 ?skewed 0 0.0 0.1 -0.01 ?handle))
+  
+  (<- (object-handle "Plate" ?handle)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (crs:lisp-fun * ?pi -1.6 ?skewed)
+    (make-handle -0.01 1 ?pi-half push 0.0 ?skewed 0 0.0 -0.1 -0.0 ?handle))
+  
+  (<- (object-handle "Knife" ?handle)
+    (symbol-value pi ?pi)
+    (crs:lisp-fun / ?pi 2 ?pi-half)
+    (crs:lisp-fun / ?pi -2 ?minus-pi-half)
+    (make-handle -0.0 1 ?pi-half push 0.0 ?pi-half 0 0.0 0.0 0.01 ?handle))
+  
   (<- (object-handle desig-props:pancakemix ?handle)
     (symbol-value pi ?pi)
     (crs:lisp-fun / ?pi 2 ?pi-half)
@@ -251,6 +275,15 @@
     (crs:lisp-fun * ?pi-half 3 ?three-pi-half)
     (make-handle 0.08 1 ?three-pi-half desig-props::push ?pi-half 0 0 0 0 0 ?handle))
     ;(make-handle 1 ?three-pi-half ?handle))
+
+  (<- (infer-object-property ?object desig-props:dimensions ?value)
+    (desig-prop ?object (desig-props:name ?name))
+    (crs:lisp-fun get-item-dimensions ?name ?value)
+    (not (equal ?value nil)))
+  
+  (<- (infer-object-property ?object desig-props:shape ?value)
+    (desig-prop ?object (desig-props:name ?name))
+    (crs:lisp-fun get-item-primitive-shape-symbol ?name ?value))
   
   (<- (object-carry-handles desig-props::pancakemix 1))
   (<- (object-carry-handles desig-props::milk 1))
