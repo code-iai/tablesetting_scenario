@@ -49,7 +49,10 @@
       seat_position_index/2,
       seat_position_side/2,
       ts_call/3,
-      common_storage_location/2
+      common_storage_location/2,
+      object_dimensions_restricted/4,
+      object_literal_atom/3,
+      object_primitive_shape/2
     ]).
 
 
@@ -78,7 +81,10 @@
     seat_position_side(r, r),
     object_urdf_path(r, r),
     ts_call(r, r, r),
-    common_storage_location(r, r).
+    common_storage_location(r, r),
+    object_dimensions_restricted(r, r, r, r),
+    object_literal_atom(r, r, r),
+    object_primitive_shape(r, r).
 
 
 :- rdf_db:rdf_register_ns(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#', [keep(true)]).
@@ -235,3 +241,42 @@ seat_position_index(Seat, Index) :-
 seat_position_side(Seat, Side) :-
     seat_area(Seat, _),
     rdf_has(Seat, knowrob:'side', literal(type(_, Side))).
+
+
+%% object_dimensions_restricted(?Object, ?Width, ?Depth, ?Height) is nondet.
+%
+% Gets the width, depth, and height of a given object, and can traverse into class restrictions.
+%
+% @param Object       The object to get the dimensions for
+% @param Width        Width of the object
+% @param Depth        Depth of the object
+% @param Height       Height of the object
+%
+object_dimensions_restricted(Object, Width, Depth, Height) :-
+    object_literal_atom(Object, knowrob:'widthOfObject', Width),
+    object_literal_atom(Object, knowrob:'depthOfObject', Depth),
+    object_literal_atom(Object, knowrob:'heightOfObject', Height).
+
+
+%% object_literal_atom(?Object, ?Property, ?Value) is nondet.
+%
+% Returns the given property (wrapped in a literal and represented as an atom) for the given object.
+% @param Object       Object to return the property for
+% @param Property     The property to return the literal wrapped/atom represented value for
+% @param Value        The contained value
+%
+object_literal_atom(Object, Property, Value) :-
+    owl_has(Object, Property, Literal),
+    strip_literal_type(Literal, Atom),
+    term_to_atom(Value, Atom).
+
+
+%% object_primitive_shape(?Object, ?PrimitiveShape) is nondet.
+%
+% Returns the primitive shape of Object.
+%
+% @param Object          The object to get the primitive shape of
+% @param PrimitiveShape  The primitive shape of Object
+%
+object_primitive_shape(Object, PrimitiveShape) :-
+    object_literal_atom(Object, knowrob:'primitiveShape', PrimitiveShape).
