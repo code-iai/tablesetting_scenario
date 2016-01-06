@@ -4,6 +4,6 @@
   
   <xacro:include filename="$(find tablesetting_scenario_models)/defs/utils.xml"/>
   
-  <cylinderlink name="link" height="0.02" radius="0.16" mass="0.2" />
+  <cylinderlink name="link" height="0.02" radius="0.1" mass="0.2" />
   
 </robot>
