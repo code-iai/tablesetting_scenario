@@ -125,6 +125,52 @@
         </owl:Restriction>
       </rdfs:subClassOf>
     </owl:Class>
+
+    <owl:Class rdf:about="&knowrob;Knife">
+      <rdfs:subClassOf rdf:resource="&knowrob;TablesettingObject"/>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;urdf"/>
+          <owl:hasValue rdf:datatype="&xsd;string">package://tablesetting_scenario_models/models/knife/knife.urdf</owl:hasValue>
+	</owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;widthOfObject"/>
+          <owl:hasValue rdf:datatype="&xsd;double">0.15</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;depthOfObject"/>
+          <owl:hasValue rdf:datatype="&xsd;double">0.015</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;heightOfObject"/>
+          <owl:hasValue rdf:datatype="&xsd;double">0.015</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;primitiveShape"/>
+          <owl:hasValue rdf:datatype="&xsd;string">box</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+      
+      <rdfs:subClassOf>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="&knowrob;commonStorageLocation"/>
+          <owl:hasValue rdf:datatype="&xsd;string">counter</owl:hasValue>
+        </owl:Restriction>
+      </rdfs:subClassOf>
+    </owl:Class>
     
     <owl:Class rdf:about="&knowrob;Cup">
       <rdfs:subClassOf rdf:resource="&knowrob;TablesettingObject"/>
