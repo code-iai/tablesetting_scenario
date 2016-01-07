@@ -679,6 +679,14 @@
                         :model2 object-name
                         :link2 "link"))
 
+(defun detach-all ()
+  (roslisp:call-service "/gazebo/detach"
+                        'attache_msgs-srv:Attachment
+                        :model1 "*"
+                        :link1 "*"
+                        :model2 "*"
+                        :link2 "*"))
+
 (defun attach (object-name side)
   (roslisp:call-service "/gazebo/attach"
                         'attache_msgs-srv:Attachment
