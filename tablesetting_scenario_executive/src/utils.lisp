@@ -697,6 +697,16 @@
                         :model2 object-name
                         :link2 "link"))
 
+(defun remove-all-volatile-gazebo-objects ()
+  (let ((models (cram-gazebo-utilities:get-models)))
+    (loop for model in models
+          do (destructuring-bind (name . pose) model
+               (declare (ignore pose))
+               (unless (or (string= name "ground_plane")
+                           (string= name "pr2")
+                           (string= name "kitchen"))
+                 (cram-gazebo-utilities::delete-gazebo-model name))))))
+
 (defun position-free? (rack-level x y &key (threshold 0.15))
   (let* ((known-objects (get-shopping-items))
          (present-object-poses

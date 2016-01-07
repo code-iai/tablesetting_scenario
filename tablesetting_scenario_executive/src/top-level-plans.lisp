@@ -279,7 +279,8 @@
   (moveit::detach-all-attachments)
   (moveit:clear-collision-environment)
   (loop for object in (tablesetting-objects)
-        do (retract-tablesetting-object object)))
+        do (retract-tablesetting-object object))
+  (remove-all-volatile-gazebo-objects))
 
 (def-top-level-cram-function tablesetting-test-seq ()
   (cleanup-everything!)
