@@ -37,6 +37,7 @@
       semantic_reference/2,
       tablesetting_object/1,
       assert_tablesetting_object/2,
+      retract_tablesetting_object/1,
       get_object_pose/2,
       assert_object_pose/17,
       rotation_matrix/2,
@@ -68,6 +69,7 @@
     storage_location(r, r),
     semantic_reference(r, r),
     assert_tablesetting_object(r, r),
+    retract_tablesetting_object(r),
     assert_object_pose(r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r, r),
     get_object_pose(r, r),
     rotation_matrix(r, r),
@@ -128,6 +130,11 @@ tablesetting_object(Object) :-
 %% assert_tablesetting_object(?Instance, ?Type) is nondet.
 assert_tablesetting_object(Instance, Type) :-
     rdf_instance_from_class(Type, Instance).
+
+
+%% retract_tablesetting_object(?Instance) is nondet.
+retract_tablesetting_object(Instance) :-
+    rdf_retractall(Instance, _, _).
 
 
 %% assert_object_pose(?Instance, ?Pose) is nondet.
