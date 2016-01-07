@@ -302,13 +302,15 @@
                             (cpl:retry)))
                        (perceive-a object))
                      (cpl:with-failure-handling
-                         ((cram-plan-failures:location-not-reached-failure (f)
+                         (((or cram-plan-failures:location-not-reached-failure
+                               cram-plan-failures:manipulation-pose-unreachable) (f)
                             (declare (ignore f))
                             (cpl:retry)))
                        (pick-object object))
                      (let ((place (combine-locations table destination-place)))
                        (cpl:with-failure-handling
-                           ((cram-plan-failures:location-not-reached-failure (f)
+                           (((or cram-plan-failures:location-not-reached-failure
+                                 cram-plan-failures:manipulation-pose-unreachable) (f)
                               (declare (ignore f))
                               (cpl:retry)))
                          (place-object object place)
