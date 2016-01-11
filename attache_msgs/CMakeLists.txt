@@ -5,7 +5,9 @@ find_package(catkin REQUIRED COMPONENTS message_generation)
 
 add_service_files(DIRECTORY srv
   FILES
-  Attachment.srv)
+  Attachment.srv
+  JointControl.srv
+  JointInformation.srv)
 
 generate_messages()
 
