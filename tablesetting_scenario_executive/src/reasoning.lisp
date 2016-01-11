@@ -31,10 +31,14 @@
 
 (defmacro with-first-prolog-vars-bound (vars prolog-query &body body)
   "Evaluates the prolog query `prolog-query' and transforms variables `vars' via `body', returning the result."
-  `(with-vars-bound ,vars
-       (lazy-car
-        (json-prolog:prolog ,prolog-query))
-     ,@body))
+  (cond ((> (length vars) 0)
+         `(with-vars-bound ,vars
+              (lazy-car
+               (json-prolog:prolog ,prolog-query))
+            ,@body))
+        (t `(progn
+              (json-prolog:prolog ,prolog-query)
+              ,@body))))
 
 (defmacro with-prolog-vars-bound (vars prolog-query &body body)
   "Lists all results from the prolog query `prolog-query', each being transformed by `body'. `vars' denotes all variables to make available in `body'."
@@ -93,6 +97,10 @@
   (with-first-prolog-vars-bound (?instance)
       `("assert_tablesetting_object" ?instance ,(add-prolog-namespace type))
     (split-prolog-symbol (json-symbol->string ?instance))))
+
+(defun retract-tablesetting-object (instance)
+  (with-first-prolog-vars-bound ()
+      `("retract_tablesetting_object" ,(add-prolog-namespace instance))))
 
 (defun tablesetting-objects ()
   (with-prolog-vars-bound (?object)

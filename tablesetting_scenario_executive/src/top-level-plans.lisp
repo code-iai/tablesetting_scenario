@@ -274,7 +274,16 @@
                         (subseq sequence 0 index)
                         (subseq sequence (1+ index))))))
 
+(defun cleanup-everything! ()
+  (detach-all)
+  (moveit::detach-all-attachments)
+  (moveit:clear-collision-environment)
+  (loop for object in (tablesetting-objects)
+        do (retract-tablesetting-object object))
+  (remove-all-volatile-gazebo-objects))
+
 (def-top-level-cram-function tablesetting-test-seq ()
+  (cleanup-everything!)
   (let ((table (make-designator 'location
                                 `((desig-props:on Cupboard)
                                   (desig-props:name "kitchen_island"))))
