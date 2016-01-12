@@ -47,6 +47,8 @@
                 infer-object-property
                 perceived-object-invalid
                 object-handle)
+  (:import-from :cram-manipulation-knowledge
+                orientation-matters)
   (:import-from :pr2-manipulation-process-module
                 reorient-object)
   (:import-from :location-costmap

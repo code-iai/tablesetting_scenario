@@ -252,6 +252,8 @@
     (crs:lisp-fun / ?pi -2 ?minus-pi-half)
     (make-handle -0.0 1 ?pi-half push 0.0 ?pi-half 0 0.0 0.0 0.01 ?handle))
   
+  (<- (orientation-matterns "Knife" t))
+  
   (<- (object-handle desig-props:pancakemix ?handle)
     (symbol-value pi ?pi)
     (crs:lisp-fun / ?pi 2 ?pi-half)
