@@ -739,3 +739,57 @@
           (y (- (random 0.6) 0.3)))
       (when (position-free? (get-rack-on-level rack rack-level) x y)
         (return (values rack-level x y))))))
+
+(defun open-sim-fridge ()
+  (cram-gazebo-utilities::open-joint "kitchen" "fridge_block_fridge_joint" t))
+
+(defun close-sim-fridge ()
+  (cram-gazebo-utilities::close-joint "kitchen" "fridge_block_fridge_joint" t))
+
+(defun open-sim-drawer-top ()
+  (cram-gazebo-utilities::open-joint "kitchen" "sink_block_drawer_sink_col1_top_joint" t))
+
+(defun close-sim-drawer-top ()
+  (cram-gazebo-utilities::close-joint "kitchen" "sink_block_drawer_sink_col1_top_joint" t))
+
+(defun update-collision-object-pose-relative (name transform)
+  (let ((sem-obj (first (sem-map-utils:designator->semantic-map-objects
+                         (make-designator 'object `((desig-props:name ,name)))))))
+    (when sem-obj
+      (let* ((owl-name (sem-map-utils:owl-name sem-obj))
+             (sem-map-objs
+               (gethash
+                owl-name
+                semantic-map-collision-environment::*semantic-map-obj-cache*)))
+        (loop for sem-map-obj in sem-map-objs
+              do (let* ((obj-name
+                          (semantic-map-collision-environment::make-collision-obj-name
+                           sem-map-obj))
+                        (pose-current (slot-value sem-map-obj 'sem-map-coll-env::pose))
+                        (pose-transformed (cl-transforms:transform-pose
+                                           (tf:pose->transform pose-current)
+                                           (tf:transform->pose transform))))
+                   (moveit:add-collision-object
+                    obj-name (tf:pose->pose-stamped "map" 0.0 pose-transformed))))))))
+
+(defun open-model-drawer-top ()
+  (update-collision-object-pose-relative
+   "drawer_sinkblock_upper"
+   (cl-transforms:make-transform
+    (tf:make-3d-vector -0.47 0.0 0.0)
+    (tf:euler->quaternion))))
+
+(defun close-model-drawer-top ()
+  (update-collision-object-pose-relative
+   "drawer_sinkblock_upper"
+   (cl-transforms:make-transform
+    (tf:make-3d-vector 0.0 0.0 0.0)
+    (tf:euler->quaternion))))
+
+(defun do-open-drawer-top ()
+  (open-sim-drawer-top)
+  (open-model-drawer-top))
+
+(defun do-close-drawer-top ()
+  (close-sim-drawer-top)
+  (close-model-drawer-top))
