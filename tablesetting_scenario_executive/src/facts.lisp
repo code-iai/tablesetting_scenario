@@ -144,7 +144,8 @@
                           (make-scenario-area-restriction-cost-function)
                           ?cm)))
 
-(def-fact-group inference-facts (infer-object-property object-handle)
+(def-fact-group inference-facts (infer-object-property object-handle
+                                                       orientation-matters)
   
   (<- (make-handle ?segments ?offset-angle ?handle)
     (symbol-value pi ?pi)
@@ -252,7 +253,7 @@
     (crs:lisp-fun / ?pi -2 ?minus-pi-half)
     (make-handle -0.0 1 ?pi-half push 0.0 ?pi-half 0 0.0 0.0 0.01 ?handle))
   
-  (<- (orientation-matterns "Knife" t))
+  (<- (orientation-matters "Knife" t))
   
   (<- (object-handle desig-props:pancakemix ?handle)
     (symbol-value pi ?pi)
